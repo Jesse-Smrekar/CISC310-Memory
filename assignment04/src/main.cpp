@@ -4,6 +4,7 @@
 #include "pagetable.h"
 
 void printStartMessage(int page_size);
+void tokenize(std::string const &str,const char delim,std::vector<std::string> &out);
 
 int main(int argc, char **argv)
 {
@@ -23,15 +24,49 @@ int main(int argc, char **argv)
 
     // Prompt loop
     std::string command;
+    std::vector<std::string> args;
+
     std::cout << "> ";
     std::getline (std::cin, command);
-    while (command != "exit") {
-        // Handle command
-        // TODO: implement this!
 
-        // Get next command
+    while (command != "exit")
+    {
+        tokenize(command,' ',args);
+
+        if(args[0] == "create")
+        {
+            std::cout << "create" << std::endl;
+        }
+
+        else if(args[0] == "allocate")
+        {
+            std::cout << "allocate" << std::endl;
+        }
+
+        else if(args[0] == "set")
+        {
+            std::cout << "set" << std::endl;
+        }
+
+        else if(args[0] == "free")
+        {
+            std::cout << "free" << std::endl;
+        }
+
+        else if(args[0] == "terminate")
+        {
+            std::cout << "terminate" << std::endl;
+        }
+
+        else if(args[0] == "print")
+        {
+            std::cout << "print" << std::endl;
+        }
+
         std::cout << "> ";
         std::getline (std::cin, command);
+
+        args.clear();
     }
 
 
@@ -53,4 +88,17 @@ void printStartMessage(int page_size)
     std::cout << "    * if <object> is \"processes\", print a list of PIDs for processes that are still running" << std:: endl;
     std::cout << "    * if <object> is a \"<PID>:<var_name>\", print the value of the variable for that process" << std:: endl;
     std::cout << std::endl;
+}
+
+void tokenize(std::string const &str,const char delim,std::vector<std::string> &out)
+{// sourced from https://www.techiedelight.com/split-string-cpp-using-delimiter/
+    // splits a string on a delimiting character, used to create a list of arguments
+    size_t start;
+    size_t end = 0;
+
+    while ((start = str.find_first_not_of(delim, end)) != std::string::npos)
+    {
+        end = str.find(delim, start);
+        out.push_back(str.substr(start, end - start));
+    }
 }
