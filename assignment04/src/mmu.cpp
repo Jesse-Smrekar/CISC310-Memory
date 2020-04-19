@@ -41,3 +41,15 @@ void Mmu::print()
         }
     }
 }
+
+void Mmu::listProcesses()
+{// used for command 'print processes'
+    std::cout << "PIDs:" << std::endl;
+    
+    for(auto it = _processes.begin();it != _processes.end();it++)
+    {
+        Process* process = *it;
+
+        std::cout << process->pid <<std::endl;
+    }
+}

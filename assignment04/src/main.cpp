@@ -5,6 +5,17 @@
 
 void printStartMessage(int page_size);
 void tokenize(std::string const &str,const char delim,std::vector<std::string> &out);
+void create(std::vector<std::string> args);
+void allocate(std::vector<std::string> args);
+
+typedef struct Hardware
+{
+    PageTable page_table;
+    Mmu mmu;
+    uint8_t* memory;
+} Hardware;
+
+Hardware* hardware; // global pointer to hardware struct
 
 int main(int argc, char **argv)
 {
@@ -19,8 +30,14 @@ int main(int argc, char **argv)
     int page_size = std::stoi(argv[1]);
     printStartMessage(page_size);
 
-    // Create physical 'memory'
-    uint8_t *memory = new uint8_t[67108864]; // 64 MB (64 * 1024 * 1024)
+    // Create physical 'memory' and other hardware, then make global
+    Hardware* hardware_pointer;
+
+    hardware_pointer->page_table = PageTable(page_size);
+    hardware_pointer->mmu = Mmu(67108864);
+    hardware_pointer->memory = new uint8_t[67108864]; // 64 MB (64 * 1024 * 1024)
+
+    hardware = hardware_pointer;
 
     // Prompt loop
     std::string command;
@@ -35,12 +52,12 @@ int main(int argc, char **argv)
 
         if(args[0] == "create")
         {
-            std::cout << "create" << std::endl;
+            create(args);
         }
 
         else if(args[0] == "allocate")
         {
-            std::cout << "allocate" << std::endl;
+            allocate(args);
         }
 
         else if(args[0] == "set")
@@ -91,8 +108,7 @@ void printStartMessage(int page_size)
 }
 
 void tokenize(std::string const &str,const char delim,std::vector<std::string> &out)
-{// sourced from https://www.techiedelight.com/split-string-cpp-using-delimiter/
-    // splits a string on a delimiting character, used to create a list of arguments
+{// SRC: https://www.techiedelight.com/split-string-cpp-using-delimiter/
     size_t start;
     size_t end = 0;
 
@@ -101,4 +117,90 @@ void tokenize(std::string const &str,const char delim,std::vector<std::string> &
         end = str.find(delim, start);
         out.push_back(str.substr(start, end - start));
     }
+}
+
+void create(std::vector<std::string> args)
+{
+    if(args.size() != 3)
+    {    
+        std::cout << "Wrong number of arguments for command \"create\"" << std::endl;
+        return;
+    }
+
+    try
+    {
+        int text = std::stoi(args[1]);
+        int data = std::stoi(args[2]);
+    }
+    catch(std::invalid_argument)
+    {
+        std::cout << "ERROR: invalid argument to command \"create\"" << std::endl;
+    }
+
+    //TODO actually create the process
+
+    // create <text_size> <data_size>
+        // Create a process
+        // Assign a PID (start at 1024, increment from there)
+        // Allocate some memory to begin
+            // text 2048-16384 bytes
+            // data 0-1024 bytes
+            // stack constant 65536 bytes
+        // Print process' PID
+}
+
+void allocate(std::vector<std::string> args)
+{
+    if(args.size() != 5)
+    {    
+        std::cout << "Wrong number of arguments for command \"allocate\"" << std::endl;
+        return;
+    }
+
+    try
+    {
+        int pid = std::stoi(args[1]);   //TODO pid might not correspond to a real process
+        std::string name = args[2];
+        
+        Mmu::Datatype type;
+
+        if(args[3] == "char")
+            type == Mmu::Datatype::Char;
+
+        else if(args[3] == "short")
+            type == Mmu::Datatype::Short;
+
+        else if(args[3] == "int")
+            type == Mmu::Datatype::Int;
+
+        else if(args[3] == "long")
+            type == Mmu::Datatype::Long;
+
+        else if(args[3] == "float")
+            type == Mmu::Datatype::Float;
+
+        else if(args[3] == "double")
+            type == Mmu::Datatype::Double;
+
+        else
+        {
+            std::cout << "Invalid datatype" << std::endl;
+            return;
+        }
+
+        int n_elements = stoi(args[4]);
+    }
+
+    catch(std::invalid_argument)
+    {
+        std::cout << "ERROR: invalid argument to command \"allocate\"" << std::endl;
+    }
+
+    //TODO actually allocate the data
+
+    // allocate <PID> <var_name> <data_type> <n_elements>
+        // char: 1 byte per element
+        // short: 2 bytes
+        // int/float: 4 bytes
+        // long/double: 8 bytes
 }
