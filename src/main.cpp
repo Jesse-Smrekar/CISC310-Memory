@@ -1,9 +1,12 @@
 #include <iostream>
 #include <string>
+#include <bits/stdc++.h> 
 #include "mmu.h"
 #include "pagetable.h"
 
 void printStartMessage(int page_size);
+void create(std::vector<std::string> args);
+void allocate(std::vector<std::string> args);
 
 int main(int argc, char **argv)
 {
@@ -25,14 +28,54 @@ int main(int argc, char **argv)
     std::string command;
     std::cout << "> ";
     std::getline (std::cin, command);
-    while (command != "exit") {
-        // Handle command
-        // TODO: implement this!
+    //std::vector<std::string> tokens;
 
-        // Get next command
+    while (command != "exit") {
+
+        std::istringstream buf(command); 
+        std::istream_iterator<std::string> beg(buf), end;
+        std::vector<std::string> tokens(beg, end); 
+
+        if( tokens.size() > 0){
+        
+            if(tokens[0] == "create")
+            {
+                create(tokens);
+            }
+
+            else if(tokens[0] == "allocate")
+            {
+                allocate(tokens);
+            }
+
+            else if(tokens[0] == "set")
+            {
+                std::cout << "set" << std::endl;
+            }
+
+            else if(tokens[0] == "free")
+            {
+                std::cout << "free" << std::endl;
+            }
+
+            else if(tokens[0] == "terminate")
+            {
+                std::cout << "terminate" << std::endl;
+            }
+
+            else if(tokens[0] == "print")
+            {
+                std::cout << "print" << std::endl;
+            }
+
+            for(int i=0; i<tokens.size(); i++){
+                std::cout << "\t " << tokens[i] << std::endl;
+            }
+        }
+
         std::cout << "> ";
         std::getline (std::cin, command);
-    }
+   }
 
 
     return 0;
@@ -53,4 +96,14 @@ void printStartMessage(int page_size)
     std::cout << "    * if <object> is \"processes\", print a list of PIDs for processes that are still running" << std:: endl;
     std::cout << "    * if <object> is a \"<PID>:<var_name>\", print the value of the variable for that process" << std:: endl;
     std::cout << std::endl;
+}
+
+void create(std::vector<std::string> args){
+
+
+}
+void allocate(std::vector<std::string> args){
+
+
+
 }
