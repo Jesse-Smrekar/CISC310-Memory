@@ -4,8 +4,6 @@ Mmu::Mmu(int memory_size)
 {
     _next_pid = 1024;
     _max_size = memory_size;
-
-    // _processes = std::vector<Process*>();
 }
 
 Mmu::~Mmu()
@@ -15,15 +13,36 @@ Mmu::~Mmu()
 uint32_t Mmu::createProcess(int text,int data)
 {
     Process *proc = new Process();
+    std::cout << "Process created\n";
+
     proc->pid = _next_pid;
+    std::cout << "Pid set to " << proc->pid << std::endl;
 
-    Variable *var = new Variable();
+    Variable* var = new Variable();
+    std::cout << "Variable created" << std::endl;
+
     var->name = "<FREE_SPACE>";
-    var->virtual_address = 0;
-    var->size = _max_size;
-    var->type = Datatype::Free;
-    proc->variables.push_back(var);
+    std::cout << "free space named" << std::endl;
 
+    var->virtual_address = 0;
+    std::cout << "address set" << std::endl;
+
+    var->size = _max_size;
+    std::cout << "maxsize set" << std::endl;
+
+    var->type = Mmu::Datatype::Free;
+    std::cout << "datatype set, about to add variable to vector size " << proc->variables.size() << std::endl;
+
+    proc->variables.push_back(var);
+    std::cout << "variable added, size is " << proc->variables.size() << std::endl;
+
+    for(auto it = _processes.begin();it != _processes.end();++it)
+    {
+        Process* temp = *it;
+        std::cout << temp->pid;
+    }
+
+    std::cout << "incoming yikes" << std::endl;
     _processes.push_back(proc); //TODO trying to push a second process throws a seg fault
 
     _next_pid++;

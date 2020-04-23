@@ -3,12 +3,6 @@
 #include "mmu.h"
 #include "pagetable.h"
 
-void printStartMessage(int page_size);
-void tokenize(std::string const &str,const char delim,std::vector<std::string> &out);
-void create(std::vector<std::string> args);
-void allocate(std::vector<std::string> args);
-void set(std::vector<std::string> args);
-
 typedef struct Hardware
 {
 	PageTable page_table;
@@ -16,11 +10,14 @@ typedef struct Hardware
 	uint8_t* memory;
 } Hardware;
 
-Hardware* hardware; // global pointer to hardware struct
+void printStartMessage(int page_size);
+void tokenize(std::string const &str,const char delim,std::vector<std::string> &out);
+void create(std::vector<std::string> args,Hardware* hardware);
+void allocate(std::vector<std::string> args,Hardware* hardware);
+void set(std::vector<std::string> args,Hardware* hardware);
 
 int main(int argc, char **argv)
 {
-	std::cout << sizeof(Datatype) << std::endl;
 	// Ensure user specified page size as a command line parameter
 	if (argc < 2)
 	{
@@ -33,13 +30,11 @@ int main(int argc, char **argv)
 	printStartMessage(page_size);
 
 	// Create physical 'memory' and other hardware, then make global
-	Hardware* hardware_pointer;
+	Hardware* hardware;
 
-	hardware_pointer->page_table = PageTable(page_size);
-	hardware_pointer->mmu = Mmu(67108864);
-	hardware_pointer->memory = new uint8_t[67108864]; // 64 MB (64 * 1024 * 1024)
-
-	hardware = hardware_pointer;
+	hardware->page_table = PageTable(page_size);
+	hardware->mmu = Mmu(67108864);
+	hardware->memory = new uint8_t[67108864]; // 64 MB (64 * 1024 * 1024)
 
 	// Prompt loop
 	std::string command;
@@ -54,17 +49,17 @@ int main(int argc, char **argv)
 
 		if(args[0] == "create")
 		{
-			create(args);
+			create(args,hardware);
 		}
 
 		else if(args[0] == "allocate")
 		{
-			allocate(args);
+			allocate(args,hardware);
 		}
 
 		else if(args[0] == "set")
 		{
-			set(args);
+			set(args,hardware);
 		}
 
 		else if(args[0] == "free")
@@ -121,7 +116,7 @@ void tokenize(std::string const &str,const char delim,std::vector<std::string> &
 	}
 }
 
-void create(std::vector<std::string> args)
+void create(std::vector<std::string> args,Hardware* hardware)
 {
 	if(args.size() != 3)
 	{    
@@ -168,7 +163,7 @@ void create(std::vector<std::string> args)
 		// Print process' PID
 }
 
-void allocate(std::vector<std::string> args)
+void allocate(std::vector<std::string> args,Hardware* hardware)
 {
 	if(args.size() != 5)
 	{    
@@ -181,25 +176,25 @@ void allocate(std::vector<std::string> args)
 		int pid = std::stoi(args[1]);   //TODO pid might not correspond to a real process
 		std::string name = args[2];
 		
-		Datatype type;
+		Mmu::Datatype type;
 
 		if(args[3] == "char")
-			type = Datatype::Char;
+			type = Mmu::Datatype::Char;
 
 		else if(args[3] == "short")
-			type = Datatype::Short;
+			type = Mmu::Datatype::Short;
 
 		else if(args[3] == "int")
-			type = Datatype::Int;
+			type = Mmu::Datatype::Int;
 
 		else if(args[3] == "long")
-			type = Datatype::Long;
+			type = Mmu::Datatype::Long;
 
 		else if(args[3] == "float")
-			type = Datatype::Float;
+			type = Mmu::Datatype::Float;
 
 		else if(args[3] == "double")
-			type = Datatype::Double;
+			type = Mmu::Datatype::Double;
 
 		else
 		{
@@ -224,7 +219,7 @@ void allocate(std::vector<std::string> args)
 		// long/double: 8 bytes
 }
 
-void set(std::vector<std::string> args)
+void set(std::vector<std::string> args,Hardware* hardware)
 {
 	//TODO figure out how to error check this
 
