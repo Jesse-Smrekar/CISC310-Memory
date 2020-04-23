@@ -4,13 +4,15 @@ Mmu::Mmu(int memory_size)
 {
     _next_pid = 1024;
     _max_size = memory_size;
+
+    // _processes = std::vector<Process*>();
 }
 
 Mmu::~Mmu()
 {
 }
 
-uint32_t Mmu::createProcess()
+uint32_t Mmu::createProcess(int text,int data)
 {
     Process *proc = new Process();
     proc->pid = _next_pid;
@@ -19,9 +21,10 @@ uint32_t Mmu::createProcess()
     var->name = "<FREE_SPACE>";
     var->virtual_address = 0;
     var->size = _max_size;
+    var->type = Datatype::Free;
     proc->variables.push_back(var);
 
-    _processes.push_back(proc);
+    _processes.push_back(proc); //TODO trying to push a second process throws a seg fault
 
     _next_pid++;
     return proc->pid;
