@@ -10,18 +10,23 @@ Mmu::~Mmu()
 {
 }
 
-uint32_t Mmu::createProcess()
+uint32_t Mmu::createProcess(int text,int data)
 {
     Process *proc = new Process();
+
     proc->pid = _next_pid;
 
-    Variable *var = new Variable();
+    Variable* var = new Variable();
+
     var->name = "<FREE_SPACE>";
     var->virtual_address = 0;
     var->size = _max_size;
+
+    var->type = Mmu::Datatype::Free;
+
     proc->variables.push_back(var);
 
-    _processes.push_back(proc);
+    _processes.push_back(proc); //TODO trying to push a second process throws a seg fault
 
     _next_pid++;
     return proc->pid;
@@ -39,5 +44,17 @@ void Mmu::print()
         {
             // TODO: print all variables (excluding <FREE_SPACE> entries)
         }
+    }
+}
+
+void Mmu::listProcesses()
+{// used for command 'print processes'
+    std::cout << "PIDs:" << std::endl;
+    
+    for(auto it = _processes.begin();it != _processes.end();it++)
+    {
+        Process* process = *it;
+
+        std::cout << process->pid <<std::endl;
     }
 }

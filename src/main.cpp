@@ -4,9 +4,21 @@
 #include "mmu.h"
 #include "pagetable.h"
 
+typedef struct Hardware
+{
+    PageTable* page_table;
+    Mmu* mmu;
+    uint8_t* memory;
+} Hardware;
+
 void printStartMessage(int page_size);
-void create(std::vector<std::string> args);
-void allocate(std::vector<std::string> args);
+void tokenize(std::string const &str,const char delim,std::vector<std::string> &out);
+void create(std::vector<std::string> args,Hardware* hardware);
+void allocate(std::vector<std::string> args,Hardware* hardware);
+void set(std::vector<std::string> args,Hardware* hardware);
+void free(std::vector<std::string> args,Hardware* hardware);
+void terminate(std::vector<std::string> args,Hardware* hardware);
+void print(std::vector<std::string> args,Hardware* hardware);
 
 int main(int argc, char **argv)
 {
@@ -21,8 +33,12 @@ int main(int argc, char **argv)
     int page_size = std::stoi(argv[1]);
     printStartMessage(page_size);
 
-    // Create physical 'memory'
-    uint8_t *memory = new uint8_t[67108864]; // 64 MB (64 * 1024 * 1024)
+    // Create physical 'memory' and other hardware
+    Hardware* hardware = new Hardware();
+
+    hardware->page_table = new PageTable(page_size);
+    hardware->mmu = new Mmu(67108864);
+    hardware->memory = new uint8_t[67108864]; // 64 MB (64 * 1024 * 1024)
 
     // Prompt loop
     std::string command;
@@ -40,12 +56,12 @@ int main(int argc, char **argv)
         
             if(tokens[0] == "create")
             {
-                create(tokens);
+                create(tokens,hardware);
             }
 
             else if(tokens[0] == "allocate")
             {
-                allocate(tokens);
+                allocate(tokens,hardware);
             }
 
             else if(tokens[0] == "set")
@@ -98,12 +114,131 @@ void printStartMessage(int page_size)
     std::cout << std::endl;
 }
 
-void create(std::vector<std::string> args){
+void create(std::vector<std::string> args,Hardware* hardware)
+{
+    if(args.size() != 3)
+    {    
+        std::cout << "Wrong number of arguments for command \"create\"" << std::endl;
+        return;
+    }
 
+    int text;
+    int data;
+
+    try
+    {
+        text = std::stoi(args[1]);
+        data = std::stoi(args[2]);
+    }
+    catch(std::invalid_argument)
+    {
+        std::cout << "ERROR: invalid argument to command \"create\"" << std::endl;
+    }
+
+    if(text < 2048 || text > 16384)
+    {
+        std::cout << "ERROR: text size must be between 2048 and 16384 bytes" << std::endl;
+        return;
+    }
+
+    if(data < 0 || data > 1024)
+    {
+        std::cout << "ERROR: data size must be between 0 and 1024 bytes" << std::endl;
+        return;
+    }
+
+    int pid = hardware->mmu->createProcess(text,data);
+
+    std::cout << "New process created. PID: " << pid << std::endl;
+
+    // create <text_size> <data_size>
+        // Create a process
+        // Assign a PID (start at 1024, increment from there)
+        // Allocate some memory to begin
+            // text 2048-16384 bytes
+            // data 0-1024 bytes
+            // stack constant 65536 bytes
+        // Print process' PID
+}
+
+void allocate(std::vector<std::string> args,Hardware* hardware)
+{
+    if(args.size() != 5)
+    {    
+        std::cout << "Wrong number of arguments for command \"allocate\"" << std::endl;
+        return;
+    }
+
+    try
+    {
+        int pid = std::stoi(args[1]);   //TODO pid might not correspond to a real process
+        std::string name = args[2];
+        
+        Mmu::Datatype type;
+
+        if(args[3] == "char")
+            type = Mmu::Datatype::Char;
+
+        else if(args[3] == "short")
+            type = Mmu::Datatype::Short;
+
+        else if(args[3] == "int")
+            type = Mmu::Datatype::Int;
+
+        else if(args[3] == "long")
+            type = Mmu::Datatype::Long;
+
+        else if(args[3] == "float")
+            type = Mmu::Datatype::Float;
+
+        else if(args[3] == "double")
+            type = Mmu::Datatype::Double;
+
+        else
+        {
+            std::cout << "Invalid datatype" << std::endl;
+            return;
+        }
+
+        int n_elements = stoi(args[4]);
+    }
+
+    catch(std::invalid_argument)
+    {
+        std::cout << "ERROR: invalid argument to command \"allocate\"" << std::endl;
+    }
+
+    //TODO actually allocate the data
+
+    // allocate <PID> <var_name> <data_type> <n_elements>
+        // char: 1 byte per element
+        // short: 2 bytes
+        // int/float: 4 bytes
+        // long/double: 8 bytes
+}
+
+void set(std::vector<std::string> args,Hardware* hardware)
+{
+    //TODO figure out how to error check this
+
+    // set <PID> <var_name> <offset> <value_0> <value_1> ... <value_n>
+        // look up addresss of variable using page table
+            // throw error if variable isn't real/user tries to buffer overflow(?)
+        // change value of variable in the memory array
 
 }
-void allocate(std::vector<std::string> args){
 
+void free(std::vector<std::string> args,Hardware* hardware)
+{
+    //TODO implement function
+}
 
+void terminate(std::vector<std::string> args,Hardware* hardware)
+{
+    //TODO implement function
+}
+
+void print(std::vector<std::string> args,Hardware* hardware)
+{
 
 }
