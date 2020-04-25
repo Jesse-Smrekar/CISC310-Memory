@@ -84,6 +84,11 @@ int main(int argc, char **argv)
                 std::cout << "print" << std::endl;
             }
 
+            else if(tokens[0] != "exit")
+            {
+                std::cout << "ERROR: unrecognized command" << std::endl;
+            }
+
             // for(int i=0; i<tokens.size(); i++){
             //     std::cout << "\t " << tokens[i] << std::endl;
             // }
@@ -196,7 +201,7 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
 
         else
         {
-            std::cout << "Invalid datatype" << std::endl;
+            std::cout << "ERROR: invalid datatype \"" << args[3] << "\"" << std::endl;
             return;
         }
 
@@ -209,7 +214,6 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
     {
         std::cout << "ERROR: invalid argument to command \"allocate\"" << std::endl;
     }
-    //TODO actually allocate the data
 
     // allocate <PID> <var_name> <data_type> <n_elements>
         // char: 1 byte per element

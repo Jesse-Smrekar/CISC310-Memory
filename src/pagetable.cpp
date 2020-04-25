@@ -52,3 +52,8 @@ void PageTable::print()
         // TODO: print all pages
     }
 }
+
+int PageTable::pageSize() const
+{
+    return _page_size;
+}
