@@ -12,6 +12,9 @@ Mmu::~Mmu()
 
 uint32_t Mmu::createProcess(int text,int data)
 {
+
+    //TODO doesn't currently create text, data, stack; just the free space
+
     Process *proc = new Process();
 
     proc->pid = _next_pid;
@@ -26,7 +29,7 @@ uint32_t Mmu::createProcess(int text,int data)
 
     proc->variables.push_back(var);
 
-    _processes.push_back(proc); //TODO trying to push a second process throws a seg fault
+    _processes.push_back(proc);
 
     _next_pid++;
     return proc->pid;
@@ -57,4 +60,42 @@ void Mmu::listProcesses()
 
         std::cout << process->pid <<std::endl;
     }
+}
+
+Mmu::Process* Mmu::getProcess(int pid)
+{
+    return _processes[pid-1024];
+}
+
+void Mmu::allocateMemory(int pid,std::string name,Mmu::Datatype datatype,int n_elements,PageTable* pagetable)
+{
+    int container_size;
+
+    switch(datatype)
+    {
+        case(Mmu::Datatype::Char):
+        {
+            container_size = 1;
+            break;
+        }
+        case(Mmu::Datatype::Short):
+        {
+            container_size = 2;
+            break;
+        }
+        case(Mmu::Datatype::Int):
+        case(Mmu::Datatype::Float):
+        {
+            container_size = 4;
+            break;
+        }
+        case(Mmu::Datatype::Long):
+        case(Mmu::Datatype::Double):
+        {
+            container_size = 8;
+            break;
+        }
+    }
+
+    int bytes_needed = container_size * n_elements;
 }

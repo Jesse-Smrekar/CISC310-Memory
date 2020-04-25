@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     int page_size = std::stoi(argv[1]);
     printStartMessage(page_size);
 
-    // Create physical 'memory' and other hardware
+    // Create physical 'memory' and other hardware, stored in a struct for easy passing
     Hardware* hardware = new Hardware();
 
     hardware->page_table = new PageTable(page_size);
@@ -84,9 +84,9 @@ int main(int argc, char **argv)
                 std::cout << "print" << std::endl;
             }
 
-            for(int i=0; i<tokens.size(); i++){
-                std::cout << "\t " << tokens[i] << std::endl;
-            }
+            // for(int i=0; i<tokens.size(); i++){
+            //     std::cout << "\t " << tokens[i] << std::endl;
+            // }
         }
 
         std::cout << "> ";
@@ -201,13 +201,14 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
         }
 
         int n_elements = stoi(args[4]);
+
+        hardware->mmu->allocateMemory(pid,name,type,n_elements,hardware->page_table);
     }
 
     catch(std::invalid_argument)
     {
         std::cout << "ERROR: invalid argument to command \"allocate\"" << std::endl;
     }
-
     //TODO actually allocate the data
 
     // allocate <PID> <var_name> <data_type> <n_elements>

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "pagetable.h"
 
 class Mmu {
 public:
@@ -30,11 +31,14 @@ public:
     void print();
 
     void listProcesses();
+    void allocateMemory(int pid,std::string name,Mmu::Datatype datatype,int n_elements,PageTable* pagetable);
 
 private:
     uint32_t _next_pid;
     int _max_size;
     std::vector<Process*> _processes;
+
+    Mmu::Process* getProcess(int pid);
 
 };
 
