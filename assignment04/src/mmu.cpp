@@ -36,13 +36,12 @@ uint32_t Mmu::createProcess(int text,int data)
     proc->variables.push_back(var);
     std::cout << "variable added, size is " << proc->variables.size() << std::endl;
 
-    for(auto it = _processes.begin();it != _processes.end();++it)
-    {
-        Process* temp = *it;
-        std::cout << temp->pid;
-    }
+    std::cout << "size = " << _processes.size() << std::endl;    // seg fault here also
 
-    std::cout << "incoming yikes" << std::endl;
+    if(_processes.size() > 0)
+        std::cout << _processes[0]->pid;    // seg fault occurs here, but not on size call
+
+    std::cout << "incoming error" << std::endl;
     _processes.push_back(proc); //TODO trying to push a second process throws a seg fault
 
     _next_pid++;

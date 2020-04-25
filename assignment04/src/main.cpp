@@ -5,8 +5,8 @@
 
 typedef struct Hardware
 {
-	PageTable page_table;
-	Mmu mmu;
+	PageTable* page_table;
+	Mmu* mmu;
 	uint8_t* memory;
 } Hardware;
 
@@ -15,6 +15,9 @@ void tokenize(std::string const &str,const char delim,std::vector<std::string> &
 void create(std::vector<std::string> args,Hardware* hardware);
 void allocate(std::vector<std::string> args,Hardware* hardware);
 void set(std::vector<std::string> args,Hardware* hardware);
+void free(std::vector<std::string> args,Hardware* hardware);
+void terminate(std::vector<std::string> args,Hardware* hardware);
+void print(std::vector<std::string> args,Hardware* hardware);
 
 int main(int argc, char **argv)
 {
@@ -30,10 +33,10 @@ int main(int argc, char **argv)
 	printStartMessage(page_size);
 
 	// Create physical 'memory' and other hardware, then make global
-	Hardware* hardware;
+	Hardware* hardware = new Hardware();
 
-	hardware->page_table = PageTable(page_size);
-	hardware->mmu = Mmu(67108864);
+	hardware->page_table = new PageTable(page_size);
+	hardware->mmu = new Mmu(67108864);
 	hardware->memory = new uint8_t[67108864]; // 64 MB (64 * 1024 * 1024)
 
 	// Prompt loop
@@ -74,7 +77,7 @@ int main(int argc, char **argv)
 
 		else if(args[0] == "print")
 		{
-			std::cout << "print" << std::endl;
+			print(args,hardware);
 		}
 
 		std::cout << "> ";
@@ -149,7 +152,7 @@ void create(std::vector<std::string> args,Hardware* hardware)
 		return;
 	}
 
-	int pid = hardware->mmu.createProcess(text,data);
+	int pid = hardware->mmu->createProcess(text,data);
 
 	std::cout << "New process created. PID: " << pid << std::endl;
 
@@ -227,5 +230,20 @@ void set(std::vector<std::string> args,Hardware* hardware)
 		// look up addresss of variable using page table
 			// throw error if variable isn't real/user tries to buffer overflow(?)
 		// change value of variable in the memory array
+
+}
+
+void free(std::vector<std::string> args,Hardware* hardware)
+{
+	//TODO implement function
+}
+
+void terminate(std::vector<std::string> args,Hardware* hardware)
+{
+	//TODO implement function
+}
+
+void print(std::vector<std::string> args,Hardware* hardware)
+{
 
 }
