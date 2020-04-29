@@ -29,9 +29,11 @@ public:
 
     uint32_t createProcess(int text,int data);
     void print();
-
     void listProcesses();
     void allocateMemory(int pid,std::string name,Mmu::Datatype datatype,int n_elements,PageTable* pagetable);
+    Mmu::Variable* getVariable(int PID, std::string var_name);
+    //int getVarSize(std::string var_name);
+    //int getVarStride(std::string var_name);
 
 private:
     uint32_t _next_pid;

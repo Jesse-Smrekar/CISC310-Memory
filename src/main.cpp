@@ -19,6 +19,7 @@ void set(std::vector<std::string> args,Hardware* hardware);
 void free(std::vector<std::string> args,Hardware* hardware);
 void terminate(std::vector<std::string> args,Hardware* hardware);
 void print(std::vector<std::string> args,Hardware* hardware);
+int getStride(Mmu::Variable* var, Hardware* hardware);
 
 int main(int argc, char **argv)
 {
@@ -81,7 +82,7 @@ int main(int argc, char **argv)
 
             else if(tokens[0] == "print")
             {
-                std::cout << "print" << std::endl;
+                print(tokens, hardware);
             }
 
             else if(tokens[0] != "exit")
@@ -245,5 +246,124 @@ void terminate(std::vector<std::string> args,Hardware* hardware)
 
 void print(std::vector<std::string> args,Hardware* hardware)
 {
+    bool error = false; 
 
+    if(args.size() < 2){
+        std::cout << "ERROR: not enough arguments to print" << std::endl;
+    }
+
+    //printing mem data
+    if(args.size() < 3){
+
+        if(args[1] == "mmu"){
+
+            hardware->mmu->print();
+            //WORKS
+
+        }
+
+        else if(args[1] == "page"){
+
+            hardware->page_table->print();
+            //NEED TO IMPLEMENT
+
+        }
+
+        else if(args[1] == "processes"){
+
+            hardware->mmu->listProcesses();
+            //WORKS 
+        }
+
+        //invalid argument
+        else{
+            error = true;
+        }
+    }
+
+    //printing variable
+    else{
+
+        Mmu::Variable* var = hardware->mmu->getVariable( std::stoi(args[1]), args[2] );
+        
+        if(var != NULL){
+
+            //int stride = getStride(var, hardware);
+            int addr = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );
+
+            if(var->type == "char"){
+                for(int i=0; i<var->size; i++){
+
+                    std::cout << char(hardware->memory[addr + i]) << ' ';
+                }
+            }
+
+            else if(var->type == "short"){
+                for(int i=0; i<var->size; i++){
+
+                    std::cout << short(hardware->memory[addr + i*2]) << ' ';
+                }
+            }
+
+            else if(var->type == "int"){
+                for(int i=0; i<var->size; i++){
+
+                    std::cout << int(hardware->memory[addr + i*4]) << ' ';
+                }
+            }
+
+            else if(var->type == "float"){
+                for(int i=0; i<var->size; i++){
+
+                    std::cout << float(hardware->memory[addr + i*4]) << ' ';
+                }
+            }
+
+            else if(var->type == "double"){
+                for(int i=0; i<var->size; i++){
+
+                    std::cout << double(hardware->memory[addr + i*8]) << ' ';
+                }
+            }
+
+            else if(var->type == "long"){
+                for(int i=0; i<var->size; i++){
+
+                    std::cout << long(hardware->memory[addr + i*8]) << ' ';
+                }
+            }
+        }
+               
+    }
+
+    if(error){
+        std::cout << "ERROR: invalid argument \"" << args[1] << "\" to print function" << std::endl;
+    }
+
+
+}
+
+int getStride(Mmu::Variable* var, Hardware* hardware){
+
+    int stride;
+
+    if(var->type == "char")
+        stride = 1;
+
+    else if(var->type == "short")
+        stride = 2;
+
+    else if(var->type == "int")
+        stride = 4;
+
+    else if(var->type == "float")
+        stride = 4;
+
+    else if(var->type == "double")
+        stride = 8;
+
+    else if(var->type == "long")
+        stride = 8;
+
+    return stride;
 }

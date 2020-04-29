@@ -49,7 +49,7 @@ void PageTable::print()
 
     for (it = _table.begin(); it != _table.end(); it++)
     {
-        // TODO: print all pages
+        std::cout << "Printing page table ..." << std::endl;
     }
 }
 
