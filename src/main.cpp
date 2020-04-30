@@ -248,48 +248,46 @@ void print(std::vector<std::string> args,Hardware* hardware)
 {
     bool error = false; 
 
-    if(args.size() < 2){
-        std::cout << "ERROR: not enough arguments to print" << std::endl;
+    if(args.size() != 2){
+        std::cout << "ERROR: wrong number of arguments" << std::endl;
     }
 
-    //printing mem data
-    if(args.size() < 3){
+    // printing from hardware
+    if(args[1] == "mmu"){
 
-        if(args[1] == "mmu"){
+        hardware->mmu->print();
+        //WORKS
 
-            hardware->mmu->print();
-            //WORKS
-
-        }
-
-        else if(args[1] == "page"){
-
-            hardware->page_table->print();
-            //NEED TO IMPLEMENT
-
-        }
-
-        else if(args[1] == "processes"){
-
-            hardware->mmu->listProcesses();
-            //WORKS 
-        }
-
-        //invalid argument
-        else{
-            error = true;
-        }
     }
 
-    //printing variable
+    else if(args[1] == "page"){
+
+        hardware->page_table->print();
+        //NEED TO IMPLEMENT
+
+    }
+
+    else if(args[1] == "processes"){
+
+        hardware->mmu->listProcesses();
+        //WORKS 
+    }
+
+    //printing variable, form <pid>:<var_name>
     else{
 
-        Mmu::Variable* var = hardware->mmu->getVariable( std::stoi(args[1]), args[2] );
+        int delimiter = args[1].find_first_of(':');
+        int variable_pid = std::stoi(args[1].substr(0,delimiter));
+        std::string variable_name = args[1].substr(delimiter+1,args[1].length() - delimiter);
+
+        std::cout << "Process " << variable_pid << ", variable " << variable_name << std::endl;
+
+        Mmu::Variable* var = hardware->mmu->getVariable(variable_pid,variable_name);
         
         if(var != NULL){
 
             //int stride = getStride(var, hardware);
-            int addr = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );
+            int addr = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );    // TODO physical address isn't implemented yet
 
             if(var->type == "char"){
                 for(int i=0; i<var->size; i++){
@@ -333,13 +331,12 @@ void print(std::vector<std::string> args,Hardware* hardware)
                 }
             }
         }
-               
-    }
 
-    if(error){
-        std::cout << "ERROR: invalid argument \"" << args[1] << "\" to print function" << std::endl;
+        else
+        {
+            std::cout << "ERROR: invalid argument to command \"print\"" << std::endl;   //TODO error checking might not be complete
+        }
     }
-
 
 }
 

@@ -74,10 +74,11 @@ uint32_t Mmu::createProcess(int text,int data)
 }
 
 // IMPLEMENTED BY JESSE, MIGHT BE FUCKED
+    // lol
 Mmu::Variable* Mmu::getVariable(int PID, std::string var_name){
 
     int i, j;
-    bool found = false;
+    // bool found = false;
     for (i = 0; i < _processes.size(); i++)
     {
         if(_processes[i]->pid == PID){
