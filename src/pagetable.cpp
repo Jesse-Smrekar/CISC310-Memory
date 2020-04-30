@@ -3,21 +3,42 @@
 PageTable::PageTable(int page_size)
 {
     _page_size = page_size;
+    _used = new bool[67108864/_page_size];  // stores whether a particular frame is currently being used
 }
 
 PageTable::~PageTable()
 {
 }
 
+//NOT TESTED YET
 void PageTable::addEntry(uint32_t pid, int page_number)
 {
     // Combination of pid and page number act as the key to look up frame number
     std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);
 
     // Find free frame
-    // TODO: implement this!
-    int frame = 0; 
-    _table[entry] = frame;
+    int frame = 0;
+    bool found = false;
+
+    for(frame;frame < _used.size();frame++)
+    {
+        if(_used[frame] == false)
+        {
+            found = true;
+            break;
+        }
+    }
+
+    if(found)
+    {
+        _table[entry] = frame;
+        _used[frame] = true;
+    }
+
+    else
+    {
+        std::cout << "ERROR: PageTable::addEntry couldn't find a free space" << std::endl;  //TODO maybe use this to throw memory full error?
+    }
 }
 
 int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)

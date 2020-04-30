@@ -273,7 +273,7 @@ void print(std::vector<std::string> args,Hardware* hardware)
         //WORKS 
     }
 
-    //printing variable, form <pid>:<var_name>
+    //printing variable: <pid>:<var_name>
     else{
 
         int delimiter = args[1].find_first_of(':');
