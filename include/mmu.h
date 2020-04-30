@@ -27,7 +27,7 @@ public:
     Mmu(int memory_size);
     ~Mmu();
 
-    uint32_t createProcess(int text,int data);
+    uint32_t createProcess(int text,int data,PageTable* page_table);
     void print();
     void listProcesses();
     void allocateMemory(int pid,std::string name,Mmu::Datatype datatype,int n_elements,PageTable* pagetable);

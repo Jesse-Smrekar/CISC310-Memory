@@ -20,7 +20,7 @@ void PageTable::addEntry(uint32_t pid, int page_number)
     int frame = 0;
     bool found = false;
 
-    for(frame;frame < _used.size();frame++)
+    for(frame;frame < (67108864/_page_size);frame++)
     {
         if(_used[frame] == false)
         {
@@ -62,16 +62,25 @@ int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)
 }
 
 void PageTable::print()
-{
+{//TODO prints in STRING sorted order, not INT sorted order
     std::map<std::string, int>::iterator it;
+    std::vector<std::vector<int>> entries;
 
     std::cout << " PID  | Page Number | Frame Number" << std::endl;
     std::cout << "------+-------------+--------------" << std::endl;
 
     for (it = _table.begin(); it != _table.end(); it++)
     {
-        std::cout << "Printing page table ..." << std::endl;
-    }
+        std::string key = it->first;
+
+        int delimiter = key.find_first_of('|');
+        int pid = std::stoi(key.substr(0,delimiter));
+        int page = std::stoi(key.substr(delimiter+1,key.length() - delimiter));
+
+        int frame = it->second;
+
+        printf("%6d|%13d|%13d\n",pid,page,frame);
+   }
 }
 
 int PageTable::pageSize() const

@@ -4,12 +4,13 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <vector>
 
 class PageTable {
 private:
     int _page_size;
     std::map<std::string, int> _table;
-    bool _used[];  // stores whether a particular frame is currently being used
+    bool* _used;  // stores whether a particular frame is currently being used
 
 public:
     PageTable(int page_size);

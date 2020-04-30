@@ -153,7 +153,7 @@ void create(std::vector<std::string> args,Hardware* hardware)
         return;
     }
 
-    int pid = hardware->mmu->createProcess(text,data);
+    int pid = hardware->mmu->createProcess(text,data,hardware->page_table);
 
     std::cout << "New process created. PID: " << pid << std::endl;
 

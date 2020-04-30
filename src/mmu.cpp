@@ -10,7 +10,7 @@ Mmu::~Mmu()
 {
 }
 
-uint32_t Mmu::createProcess(int text,int data)
+uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
 {
     Process *proc = new Process();
     proc->pid = _next_pid;
@@ -61,6 +61,16 @@ uint32_t Mmu::createProcess(int text,int data)
     proc->variables.push_back(var);
 
     _processes.push_back(proc);
+
+    int pages_needed = (int) v_addr / page_table->pageSize();
+
+    if(v_addr % page_table->pageSize() != 0)
+        ++pages_needed;
+
+    for(int i = 0;i < pages_needed;i++) //NOT SUPER WELL TESTED
+    {
+        page_table->addEntry(proc->pid,i);
+    }
 
     //TODO doesn't interface with page table at all yet
 
@@ -268,6 +278,8 @@ void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int 
             }
         } 
         proc->variables.push_back(var);
+
+        //TODO not interfacing with page table yet
     }
 
     else{
