@@ -30,7 +30,7 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
     if(data > 0)
     {
         Variable* data_var = new Variable();    // initialize data variable
-
+f
         data_var->name = "<GLOBALS>";
         data_var->virtual_address = v_addr;
         data_var->size = data;
@@ -71,9 +71,7 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
     {
         page_table->addEntry(proc->pid,i);
     }
-
-    //TODO doesn't interface with page table at all yet
-
+    
     // for(int i = 0;i < proc->variables.size();i++)
     // {
     //     std::cout << "Name: " << proc->variables[i]->name << " | Address: " << proc->variables[i]->virtual_address << " | Size: " << proc->variables[i]->size << std::endl;
@@ -228,61 +226,74 @@ Mmu::Process* Mmu::getProcess(int pid)
 
 void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int n_elements, PageTable* pagetable){
 
+    Mmu::Process* proc = getProcess(pid);
+
     //make sure its an existing process
-    if( Mmu::getProcess(pid) != NULL ){
-
-        int container_size;
-
-        switch(datatype)    // gets size of variable type in bytes
-        {
-            case(Mmu::Datatype::Char):
-            {
-                container_size = 1;
-                break;
-            }
-            case(Mmu::Datatype::Short):
-            {
-                container_size = 2;
-                break;
-            }
-            case(Mmu::Datatype::Int):
-            case(Mmu::Datatype::Float):
-            {
-                container_size = 4;
-                break;
-            }
-            case(Mmu::Datatype::Long):
-            case(Mmu::Datatype::Double):
-            {
-                container_size = 8;
-                break;
-            }
-        }
-
-        int bytes_needed = container_size * n_elements;
-        Mmu::Process* proc = getProcess(pid);
-
-        Variable* var = new Variable();
-        var->name = name;
-        var->size = bytes_needed;
-
-        for(int i=0; i<proc->variables.size(); i++){
-
-            if(proc->variables[i]->name == "<FREE_SPACE>" ){
-
-                //set base addr to beginning of <FREE_SPACE>
-                var->virtual_address = proc->variables[i]->virtual_address;
-                //update <FREE_SPACE> stats
-                proc->variables[i]->virtual_address += bytes_needed + 1;
-                proc->variables[i]->size -= bytes_needed;
-            }
-        } 
-        proc->variables.push_back(var);
-
-        //TODO not interfacing with page table yet
-    }
-
-    else{
+    if(proc == NULL)
+    {
         std::cout << "ERROR: process \"" << pid << "\" does not exist" << std::endl;
+        return;
     }
+
+    int container_size;
+
+    switch(datatype)    // gets size of variable type in bytes
+    {
+        case(Mmu::Datatype::Char):
+        {
+            container_size = 1;
+            break;
+        }
+        case(Mmu::Datatype::Short):
+        {
+            container_size = 2;
+            break;
+        }
+        case(Mmu::Datatype::Int):
+        case(Mmu::Datatype::Float):
+        {
+            container_size = 4;
+            break;
+        }
+        case(Mmu::Datatype::Long):
+        case(Mmu::Datatype::Double):
+        {
+            container_size = 8;
+            break;
+        }
+    }
+
+    int bytes_needed = container_size * n_elements;
+
+    Variable* var = new Variable();
+    var->name = name;
+    var->size = bytes_needed;
+
+    for(int i=0; i<proc->variables.size(); i++){
+
+        if(proc->variables[i]->name == "<FREE_SPACE>" ){    // TODO printing the mmu after allocating a variable puts FREE_SPACE right in the middle of the list
+
+            //set base addr to beginning of <FREE_SPACE>
+            var->virtual_address = proc->variables[i]->virtual_address;
+            //update <FREE_SPACE> stats
+            proc->variables[i]->virtual_address += bytes_needed + 1;
+            proc->variables[i]->size -= bytes_needed;
+        }
+    } 
+    proc->variables.push_back(var);
+
+    // calculate number of new pages needed
+    int pages_needed = 0;
+
+    int space_remaining = pagetable->pageSize() - (var->virtual_address % pagetable->pageSize());  //NEED TO TEST
+        // space left in the current page
+
+    if(var->size > space_remaining) // if the new variable can't fit in the last page, add new pages
+        pages_needed = (pages_needed/pagetable->pageSize());
+
+    for(int i = 0;i < pages_needed;i++) //NOT SUPER WELL TESTED
+    {
+        pagetable->addEntry(proc->pid,i);
+    }
+
 }
