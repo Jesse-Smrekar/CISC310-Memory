@@ -263,7 +263,7 @@ void print(std::vector<std::string> args,Hardware* hardware)
     else if(args[1] == "page"){
 
         hardware->page_table->print();
-        //NEED TO IMPLEMENT
+        //WORKS
 
     }
 
@@ -277,6 +277,12 @@ void print(std::vector<std::string> args,Hardware* hardware)
     else{
 
         int delimiter = args[1].find_first_of(':');
+        if(delimiter == std::string::npos)    // if variable is not in proper format
+        {
+            std::cout << "ERROR: not a valid argument to command \"print\"" << std::endl;
+            return;
+        }
+
         int variable_pid = std::stoi(args[1].substr(0,delimiter));
         std::string variable_name = args[1].substr(delimiter+1,args[1].length() - delimiter);
 

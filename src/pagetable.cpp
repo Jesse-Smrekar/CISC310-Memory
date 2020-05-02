@@ -37,7 +37,7 @@ void PageTable::addEntry(uint32_t pid, int page_number)
 
     else
     {
-        std::cout << "ERROR: PageTable::addEntry couldn't find a free space" << std::endl;  //TODO maybe use this to throw memory full error?
+        std::cout << "ERROR: no free space in memory" << std::endl;
     }
 }
 

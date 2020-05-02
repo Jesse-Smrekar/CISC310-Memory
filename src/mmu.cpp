@@ -224,6 +224,11 @@ Mmu::Process* Mmu::getProcess(int pid)
     return NULL;    // input pid doesn't match any current processes
 }
 
+bool variableSort(Mmu::Variable* x,Mmu::Variable* y)
+{
+    return x->virtual_address < y->virtual_address;
+}
+
 void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int n_elements, PageTable* pagetable){
 
     Mmu::Process* proc = getProcess(pid);
@@ -271,21 +276,44 @@ void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int 
 
     for(int i=0; i<proc->variables.size(); i++){
 
-        if(proc->variables[i]->name == "<FREE_SPACE>" ){    // TODO printing the mmu after allocating a variable puts FREE_SPACE right in the middle of the list
+        if(proc->variables[i]->name == "<FREE_SPACE>" ){
 
             //set base addr to beginning of <FREE_SPACE>
             var->virtual_address = proc->variables[i]->virtual_address;
             //update <FREE_SPACE> stats
-            proc->variables[i]->virtual_address += bytes_needed + 1;
+            proc->variables[i]->virtual_address += (bytes_needed + 1);
             proc->variables[i]->size -= bytes_needed;
         }
     } 
     proc->variables.push_back(var);
 
+    // std::cout << "VARIABLES BEFORE SORT" << std::endl;
+
+    // for(auto it = proc->variables.begin();it != proc->variables.end();it++)
+    // {
+    //     Variable* test = *it;
+
+    //     std::cout << test->name << std::endl;
+    // }
+
+    std::sort(proc->variables.begin(),proc->variables.end(),variableSort);
+
+    // std::cout << "VARIABLES AFTER SORT" << std::endl;
+
+    // for(auto it = proc->variables.begin();it != proc->variables.end();it++)
+    // {
+    //     Variable* test = *it;
+
+    //     std::cout << test->name << std::endl;
+    // }    
+
     // calculate number of new pages needed
+
     int pages_needed = 0;
 
-    int space_remaining = pagetable->pageSize() - (var->virtual_address % pagetable->pageSize());  //NEED TO TEST
+    int space_remaining = pagetable->pageSize() - (var->virtual_address % pagetable->pageSize());  //DOESN'T WORK
+
+    std::cout << "space remaining: " << space_remaining << std::endl;
         // space left in the current page
 
     if(var->size > space_remaining) // if the new variable can't fit in the last page, add new pages
