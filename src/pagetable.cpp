@@ -61,26 +61,47 @@ int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)
     return address;
 }
 
+bool printSort(std::string x,std::string y)
+{
+    int delimiter = x.find_first_of('|');
+    int x_pid = std::stoi(x.substr(0,delimiter));
+    int x_page = std::stoi(x.substr(delimiter+1,x.length() - delimiter));
+
+    delimiter = y.find_first_of('|');
+    int y_pid = std::stoi(y.substr(0,delimiter));
+    int y_page = std::stoi(y.substr(delimiter+1,y.length() - delimiter));
+
+    if(x_pid != y_pid)
+        return x_pid < y_pid;
+
+    else
+        return x_page < y_page;
+}
+
 void PageTable::print()
-{//TODO prints in STRING sorted order, not INT sorted order
-    std::map<std::string, int>::iterator it;
-    std::vector<std::vector<int>> entries;
+{
+    std::vector<std::string> entries;
 
     std::cout << " PID  | Page Number | Frame Number" << std::endl;
     std::cout << "------+-------------+--------------" << std::endl;
 
-    for (it = _table.begin(); it != _table.end(); it++)
+    for(auto it = _table.begin(); it != _table.end();it++)
     {
-        std::string key = it->first;
+        entries.push_back(it->first);
+    }
+
+    std::sort(entries.begin(),entries.end(),printSort);
+
+    for(auto it = entries.begin();it != entries.end();it++)
+    {   
+        std::string key = *it;
 
         int delimiter = key.find_first_of('|');
         int pid = std::stoi(key.substr(0,delimiter));
         int page = std::stoi(key.substr(delimiter+1,key.length() - delimiter));
 
-        int frame = it->second;
-
-        printf("%6d|%13d|%13d\n",pid,page,frame);
-   }
+        printf("%6d|%13d|%13d\n",pid,page,_table.find(key)->second);
+    }
 }
 
 int PageTable::pageSize() const

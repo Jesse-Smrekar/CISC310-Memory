@@ -30,7 +30,7 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
     if(data > 0)
     {
         Variable* data_var = new Variable();    // initialize data variable
-f
+
         data_var->name = "<GLOBALS>";
         data_var->virtual_address = v_addr;
         data_var->size = data;
