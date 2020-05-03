@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 
             else if(tokens[0] == "set")
             {
-                std::cout << "set" << std::endl;
+                set(tokens, hardware);
             }
 
             else if(tokens[0] == "free")
@@ -122,6 +122,7 @@ void printStartMessage(int page_size)
 
 void create(std::vector<std::string> args,Hardware* hardware)
 {
+    // create <text_size> <data_size>
     if(args.size() != 3)
     {    
         std::cout << "Wrong number of arguments for command \"create\"" << std::endl;
@@ -153,11 +154,11 @@ void create(std::vector<std::string> args,Hardware* hardware)
         return;
     }
 
-    int pid = hardware->mmu->createProcess(text,data,hardware->page_table);
+    int pid = hardware->mmu->createProcess(text,data, hardware->page_table);
 
     std::cout << "New process created. PID: " << pid << std::endl;
 
-    // create <text_size> <data_size>
+    
         // Create a process
         // Assign a PID (start at 1024, increment from there)
         // Allocate some memory to begin
@@ -169,6 +170,7 @@ void create(std::vector<std::string> args,Hardware* hardware)
 
 void allocate(std::vector<std::string> args,Hardware* hardware)
 {
+    // allocate <PID> <var_name> <data_type> <n_elements>
     if(args.size() != 5)
     {    
         std::cout << "Wrong number of arguments for command \"allocate\"" << std::endl;
@@ -180,9 +182,9 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
         int pid = std::stoi(args[1]);   //TODO pid might not correspond to a real process
         std::string name = args[2];
         
-        Mmu::Datatype type;
+        std::string type = args[3];
 
-        if(args[3] == "char")
+        /*if(args[3] == "char")
             type = Mmu::Datatype::Char;
 
         else if(args[3] == "short")
@@ -205,6 +207,7 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
             std::cout << "ERROR: invalid datatype \"" << args[3] << "\"" << std::endl;
             return;
         }
+        */
 
         int n_elements = stoi(args[4]);
 
@@ -214,24 +217,118 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
     catch(std::invalid_argument)
     {
         std::cout << "ERROR: invalid argument to command \"allocate\"" << std::endl;
-    }
-
-    // allocate <PID> <var_name> <data_type> <n_elements>
-        // char: 1 byte per element
-        // short: 2 bytes
-        // int/float: 4 bytes
-        // long/double: 8 bytes
+    }        
 }
 
 void set(std::vector<std::string> args,Hardware* hardware)
-{
-    //TODO figure out how to error check this
-
+{   
     // set <PID> <var_name> <offset> <value_0> <value_1> ... <value_n>
-        // look up addresss of variable using page table
-            // throw error if variable isn't real/user tries to buffer overflow(?)
-        // change value of variable in the memory array
+    Mmu::Variable* var = hardware->mmu->getVariable( std::stoi(args[1]), args[2] );
 
+    if(var == NULL){
+        std::cout << "ERROR: Invalid variable name: " << args[2] << std::endl;
+        return;
+    }
+
+    int base = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );
+    int addr = base + (std::stoi(args[3]));
+    int value = 0;
+    bool overflow= false;
+
+    while( value < args.size()-4 ){
+
+        if(var->type == "char"){
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            hardware->memory[addr] = ((unsigned char*)args[value+4].c_str())[0];
+            addr ++;            
+        }
+
+        else if(var->type == "short"){
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            short buffer = (short)std::stoi(args[value+4]);
+            for(int i=0; i<2; i++){
+                hardware->memory[addr] = ((unsigned char*)&buffer)[i];
+                addr ++;
+            }
+        }
+
+        else if(var->type == "int"){
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            int buffer = std::stoi(args[value+4]);
+            for(int i=0; i<4; i++){
+                hardware->memory[addr] = ((unsigned char*)&buffer)[i];
+                addr ++;
+            }
+        }
+
+        else if(var->type == "float"){
+            addr = base + (stoi(args[3]) * 4);
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            float buffer = std::stof(args[value+4]);
+            //for(int i=0; i<4; i++){
+                memcpy(&hardware->memory[addr], &buffer, sizeof(std::stof(args[value+4])));
+                //hardware->memory[addr] = ((unsigned char*)std::stof(args[value+4]))[i];
+                addr +=4;
+           // }
+        }
+
+        else if(var->type == "long"){
+            addr = base + (stoi(args[3]) * 8);
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            long buffer = std::stol(args[value+4]);
+            for(int i=0; i<8; i++){
+                hardware->memory[addr] = ((unsigned char*)&buffer)[i];
+                addr ++;
+            }
+        }
+
+        else if(var->type == "double"){
+            addr = base + (stoi(args[3]) * 8);
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            double buffer = std::stod(args[value+4]);
+            //for(int i=0; i<8; i++){
+                memcpy(&hardware->memory[addr], &buffer, sizeof(std::stod(args[value+4])));
+                //hardware->memory[addr] = ((unsigned char*)std::stod(args[value+4]))[i];
+                addr +=8;
+            //}
+        }
+
+        value++;
+    }
+
+    if(overflow){
+        std::cout << "ERROR: variable overflow - not enuogh space allocated to " << var->name << std::endl;        
+    }
 }
 
 void free(std::vector<std::string> args,Hardware* hardware)
@@ -241,132 +338,107 @@ void free(std::vector<std::string> args,Hardware* hardware)
 
 void terminate(std::vector<std::string> args,Hardware* hardware)
 {
-    //TODO implement function
+    exit(EXIT_SUCCESS);
 }
 
 void print(std::vector<std::string> args,Hardware* hardware)
 {
     bool error = false; 
 
-    if(args.size() != 2){
-        std::cout << "ERROR: wrong number of arguments" << std::endl;
+    if(args.size() < 2){
+        std::cout << "ERROR: not enough arguments to print" << std::endl;
     }
 
-    // printing from hardware
-    if(args[1] == "mmu"){
+    //printing mem data
+    if(args.size() < 3){
 
-        hardware->mmu->print();
-        //WORKS
+        if(args[1] == "mmu"){
 
-    }
+            hardware->mmu->print();
+            //WORKS
 
-    else if(args[1] == "page"){
-
-        hardware->page_table->print();
-        //WORKS
-
-    }
-
-    else if(args[1] == "processes"){
-
-        hardware->mmu->listProcesses();
-        //WORKS 
-    }
-
-    //printing variable: <pid>:<var_name>
-    else{
-
-        int delimiter = args[1].find_first_of(':');
-        if(delimiter == std::string::npos)    // if variable is not in proper format
-        {
-            std::cout << "ERROR: not a valid argument to command \"print\"" << std::endl;
-            return;
         }
 
-        int variable_pid = std::stoi(args[1].substr(0,delimiter));
-        std::string variable_name = args[1].substr(delimiter+1,args[1].length() - delimiter);
+        else if(args[1] == "page"){
 
-        std::cout << "Process " << variable_pid << ", variable " << variable_name << std::endl;
+            hardware->page_table->print();
+            //NEED TO IMPLEMENT
 
-        Mmu::Variable* var = hardware->mmu->getVariable(variable_pid,variable_name);
+        }
+
+        else if(args[1] == "processes"){
+
+            hardware->mmu->listProcesses();
+            //WORKS 
+        }
+
+        //invalid argument
+        else{
+            error = true;
+        }
+    }
+
+    //printing variable
+    else{
+
+        Mmu::Variable* var = hardware->mmu->getVariable( std::stoi(args[1]), args[2] );
         
         if(var != NULL){
 
-            //int stride = getStride(var, hardware);
-            int addr = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );    // TODO physical address isn't implemented yet
+            int addr = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );
 
             if(var->type == "char"){
                 for(int i=0; i<var->size; i++){
-
                     std::cout << char(hardware->memory[addr + i]) << ' ';
                 }
             }
 
             else if(var->type == "short"){
-                for(int i=0; i<var->size; i++){
-
-                    std::cout << short(hardware->memory[addr + i*2]) << ' ';
+                for(int i=0; i<var->size; i+=2){
+                    std::cout << short(hardware->memory[addr + i]) << ' ';
                 }
             }
 
             else if(var->type == "int"){
-                for(int i=0; i<var->size; i++){
-
-                    std::cout << int(hardware->memory[addr + i*4]) << ' ';
+                for(int i=0; i<var->size; i+=4){
+                    std::cout << int(hardware->memory[addr + i]) << ' ';
                 }
             }
 
             else if(var->type == "float"){
-                for(int i=0; i<var->size; i++){
-
-                    std::cout << float(hardware->memory[addr + i*4]) << ' ';
+                for(int i=0; i<var->size; i+=4){
+                    std::cout << float(hardware->memory[addr + i]) << ' ';
                 }
             }
 
             else if(var->type == "double"){
-                for(int i=0; i<var->size; i++){
-
-                    std::cout << double(hardware->memory[addr + i*8]) << ' ';
+                for(int i=0; i<var->size; i+=8){
+                    std::cout << double(hardware->memory[addr + i]) << ' ';
                 }
             }
 
             else if(var->type == "long"){
-                for(int i=0; i<var->size; i++){
-
-                    std::cout << long(hardware->memory[addr + i*8]) << ' ';
+                for(int i=0; i<var->size; i+=8){
+                    std::cout << long(hardware->memory[addr + i]) << ' ';
                 }
             }
+
+            else{
+                std::cout << "ERROR: variable is of type: \"" << var->type << "\"" << std::endl;
+
+            }
+            std::cout << std::endl;
         }
 
-        else
-        {
-            std::cout << "ERROR: invalid argument to command \"print\"" << std::endl;   //TODO error checking might not be complete
+        else{
+            std::cout << "ERROR: variable PID=" << args[1] << "-\"" << args[2] << "\" does not exist" << std::endl;
         }
+               
     }
 
-}
+    if(error){
+        std::cout << "ERROR: invalid argument \"" << args[1] << "\" to print function" << std::endl;
+    }
 
-int getStride(Mmu::Variable* var, Hardware* hardware){
 
-    int stride;
-
-    if(var->type == "char")
-        stride = 1;
-
-    else if(var->type == "short")
-        stride = 2;
-
-    else if(var->type == "int")
-        stride = 4;
-
-    else if(var->type == "float")
-        stride = 4;
-
-    else if(var->type == "double")
-        stride = 8;
-
-    else if(var->type == "long")
-        stride = 8;
-
-    return stride;
 }

@@ -3,41 +3,43 @@
 PageTable::PageTable(int page_size)
 {
     _page_size = page_size;
-    _used = new bool[67108864/_page_size];  // stores whether a particular frame is currently being used
+    _used = new bool[67108864/_page_size];
 }
 
 PageTable::~PageTable()
 {
 }
 
-//NOT TESTED YET
 void PageTable::addEntry(uint32_t pid, int page_number)
 {
     // Combination of pid and page number act as the key to look up frame number
     std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);
 
-    // Find free frame
-    int frame = 0;
-    bool found = false;
-
-    for(frame;frame < (67108864/_page_size);frame++)
+    if (_table.count(entry) == 0)
     {
-        if(_used[frame] == false)
+        // Find free frame
+        int frame = 0;
+        bool found = false;
+
+        for(frame;frame < (67108864/_page_size);frame++)
         {
-            found = true;
-            break;
+            if(_used[frame] == false)
+            {
+                found = true;
+                break;
+            }
         }
-    }
 
-    if(found)
-    {
-        _table[entry] = frame;
-        _used[frame] = true;
-    }
+        if(found)
+        {
+            _table[entry] = frame;
+            _used[frame] = true;
+        }
 
-    else
-    {
-        std::cout << "ERROR: no free space in memory" << std::endl;
+        else
+        {
+            std::cout << "ERROR: no free space in memory" << std::endl;
+        }
     }
 }
 
@@ -45,8 +47,8 @@ int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)
 {
     // Convert virtual address to page_number and page_offset
     // TODO: implement this!
-    int page_number = 0;
-    int page_offset = 0;
+    int page_number = virtual_address / _page_size;
+    int page_offset = virtual_address % _page_size;
 
     // Combination of pid and page number act as the key to look up frame number
     std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);
@@ -55,11 +57,12 @@ int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)
     int address = -1;
     if (_table.count(entry) > 0)
     {
-        // TODO: implement this!
+        address = _table[entry] + page_offset;
     }
 
     return address;
 }
+
 
 bool printSort(std::string x,std::string y)
 {
@@ -77,6 +80,7 @@ bool printSort(std::string x,std::string y)
     else
         return x_page < y_page;
 }
+
 
 void PageTable::print()
 {

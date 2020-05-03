@@ -10,7 +10,7 @@ Mmu::~Mmu()
 {
 }
 
-uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
+uint32_t Mmu::createProcess(int text,int data, PageTable* page_table)
 {
     Process *proc = new Process();
     proc->pid = _next_pid;
@@ -62,16 +62,8 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
 
     _processes.push_back(proc);
 
-    int pages_needed = (int) v_addr / page_table->pageSize();
+    //TODO doesn't interface with page table at all yet
 
-    if(v_addr % page_table->pageSize() != 0)
-        ++pages_needed;
-
-    for(int i = 0;i < pages_needed;i++) //NOT SUPER WELL TESTED
-    {
-        page_table->addEntry(proc->pid,i);
-    }
-    
     // for(int i = 0;i < proc->variables.size();i++)
     // {
     //     std::cout << "Name: " << proc->variables[i]->name << " | Address: " << proc->variables[i]->virtual_address << " | Size: " << proc->variables[i]->size << std::endl;
@@ -82,11 +74,10 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
 }
 
 // IMPLEMENTED BY JESSE, MIGHT BE FUCKED
-    // lol
 Mmu::Variable* Mmu::getVariable(int PID, std::string var_name){
 
     int i, j;
-    // bool found = false;
+    bool found = false;
     for (i = 0; i < _processes.size(); i++)
     {
         if(_processes[i]->pid == PID){
@@ -105,82 +96,6 @@ Mmu::Variable* Mmu::getVariable(int PID, std::string var_name){
     return NULL; 
 }
 
-
-/*
-
-
-// IMPLEMENTED BY JESSE, MIGHT BE FUCKED
-int Mmu::getVarSize(std::string var_name){
-
-    int i;
-    bool found = false;
-    for(i=0; i<proc->variables.size(); i++){
-
-        if(proc->variables[i] == var_name){
-            found = true;
-            break;
-        }
-    }
-
-    if(found){
-
-        return proc->variables[i]->size;
-    }
-    else{
-        return -1;
-    }
-}
-
-// IMPLEMENTED BY JESSE, MIGHT BE FUCKED
-int Mmu::getVarStride(std::string var_name){
-
-    int i;
-    bool found = false;
-    for(i=0; i<proc->variables.size(); i++){
-
-        if(proc->variables[i] == var_name){
-            found = true;
-            break;
-        }
-    }
-
-    if(found){
-
-        int stride = -1;
-
-        switch(proc->variables[i]->type)    // gets size of variable type in bytes
-        {
-            case(Mmu::Datatype::Char):
-            {
-                stride = 1;
-                break;
-            }
-            case(Mmu::Datatype::Short):
-            {
-                stride = 2;
-                break;
-            }
-            case(Mmu::Datatype::Int):
-            case(Mmu::Datatype::Float):
-            {
-                stride = 4;
-                break;
-            }
-            case(Mmu::Datatype::Long):
-            case(Mmu::Datatype::Double):
-            {
-                stride = 8;
-                break;
-            }
-        }
-    }
-    
-    return stride;
-}
-
-
-*/
-
 void Mmu::print()
 {
     int i, j;
@@ -191,13 +106,15 @@ void Mmu::print()
     {
         for (j = 0; j < _processes[i]->variables.size(); j++)
         {
-            std::cout << ' ' << _processes[i]->pid << " |";
-            std::cout << ' ' << _processes[i]->variables[j]->name;
-            for(int k=_processes[i]->variables[j]->name.length(); k<14; k++) std::cout << ' ';
-            std::cout << "|   ";
-            printf("0x%08X |", _processes[i]->variables[j]->virtual_address);
-            for(int k=std::to_string(_processes[i]->variables[j]->size).length(); k<11; k++) std::cout << ' ';
-            std::cout << _processes[i]->variables[j]->size << std::endl;
+            if(_processes[i]->variables[j]->name != "<FREE_SPACE>" ){
+                std::cout << ' ' << _processes[i]->pid << " |";
+                std::cout << ' ' << _processes[i]->variables[j]->name;
+                for(int k=_processes[i]->variables[j]->name.length(); k<14; k++) std::cout << ' ';
+                std::cout << "|   ";
+                printf("0x%08X |", _processes[i]->variables[j]->virtual_address);
+                for(int k=std::to_string(_processes[i]->variables[j]->size).length(); k<11; k++) std::cout << ' ';
+                std::cout << _processes[i]->variables[j]->size << std::endl;
+            }
         }
     }
 }
@@ -224,68 +141,60 @@ Mmu::Process* Mmu::getProcess(int pid)
     return NULL;    // input pid doesn't match any current processes
 }
 
+
 bool variableSort(Mmu::Variable* x,Mmu::Variable* y)
 {
     return x->virtual_address < y->virtual_address;
 }
 
-void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int n_elements, PageTable* pagetable){
+
+void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_elements, PageTable* pagetable){
 
     Mmu::Process* proc = getProcess(pid);
-
-    //make sure its an existing process
-    if(proc == NULL)
-    {
-        std::cout << "ERROR: process \"" << pid << "\" does not exist" << std::endl;
-        return;
-    }
+    Variable* var = new Variable();
+    int page_size = pagetable->pageSize();
 
     int container_size;
 
-    switch(datatype)    // gets size of variable type in bytes
-    {
-        case(Mmu::Datatype::Char):
-        {
-            container_size = 1;
-            break;
-        }
-        case(Mmu::Datatype::Short):
-        {
-            container_size = 2;
-            break;
-        }
-        case(Mmu::Datatype::Int):
-        case(Mmu::Datatype::Float):
-        {
-            container_size = 4;
-            break;
-        }
-        case(Mmu::Datatype::Long):
-        case(Mmu::Datatype::Double):
-        {
-            container_size = 8;
-            break;
-        }
+    //make sure its an existing process
+    if( Mmu::getProcess(pid) != NULL ){
+        if(datatype == "char") container_size = 1;
+        else if(datatype == "short") container_size = 2;
+        else if(datatype == "int" || "float") container_size = 4;
+        else if(datatype == "long" || "double") container_size = 8;
     }
 
     int bytes_needed = container_size * n_elements;
-
-    Variable* var = new Variable();
     var->name = name;
     var->size = bytes_needed;
+    var->type = datatype;
+    int i;
 
-    for(int i=0; i<proc->variables.size(); i++){
+    for(i=0; i<proc->variables.size(); i++){
 
-        if(proc->variables[i]->name == "<FREE_SPACE>" ){
+        //if a free space is found
+        if( proc->variables[i]->name == "<FREE_SPACE>" ){
 
-            //set base addr to beginning of <FREE_SPACE>
-            var->virtual_address = proc->variables[i]->virtual_address;
-            //update <FREE_SPACE> stats
-            proc->variables[i]->virtual_address += (bytes_needed + 1);
-            proc->variables[i]->size -= bytes_needed;
+            //if it is large enough to fit the new variable
+            if( proc->variables[i]->size >= var->size){
+
+                //set base addr to beginning of <FREE_SPACE>
+                var->virtual_address = proc->variables[i]->virtual_address;
+                //update <FREE_SPACE> stats
+                proc->variables[i]->virtual_address += bytes_needed + 1;
+                proc->variables[i]->size -= bytes_needed;
+                //if the free space is completely filled
+                if(proc->variables[i]->size <= 0){
+                    proc->variables.erase(proc->variables.begin() + (i-1));
+                }
+            }
         }
     } 
     proc->variables.push_back(var);
+
+    pagetable->addEntry( pid, proc->variables[i]->virtual_address/page_size );
+    pagetable->addEntry( pid, var->virtual_address/page_size );
+    
 
     // std::cout << "VARIABLES BEFORE SORT" << std::endl;
 
@@ -296,7 +205,7 @@ void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int 
     //     std::cout << test->name << std::endl;
     // }
 
-    std::sort(proc->variables.begin(),proc->variables.end(),variableSort);
+   /* std::sort(proc->variables.begin(),proc->variables.end(),variableSort);
 
     // std::cout << "VARIABLES AFTER SORT" << std::endl;
 
@@ -323,5 +232,5 @@ void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int 
     {
         pagetable->addEntry(proc->pid,i);
     }
-
+    */
 }
