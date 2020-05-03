@@ -22,7 +22,7 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
     text_var->name = "<TEXT>";
     text_var->virtual_address = v_addr;
     text_var->size = text;
-    text_var->type = Mmu::Datatype::Text;
+    text_var->type = "text";
 
     proc->variables.push_back(text_var);
     v_addr += text;
@@ -34,7 +34,7 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
         data_var->name = "<GLOBALS>";
         data_var->virtual_address = v_addr;
         data_var->size = data;
-        data_var->type = Mmu::Datatype::Data;
+        data_var->type = "data";
 
         proc->variables.push_back(data_var);
         v_addr += data;
@@ -45,7 +45,7 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
     stack_var->name = "<STACK>";
     stack_var->virtual_address = v_addr;
     stack_var->size = 65536;
-    stack_var->type = Mmu::Datatype::Stack;
+    stack_var->type = "stack";
 
     proc->variables.push_back(stack_var);
     v_addr += 65536;
@@ -56,7 +56,7 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
     var->virtual_address = v_addr;
     var->size = _max_size - text - data - 65536;
 
-    var->type = Mmu::Datatype::Free;
+    var->type = "free";
 
     proc->variables.push_back(var);
 
@@ -227,7 +227,7 @@ bool variableSort(Mmu::Variable* x,Mmu::Variable* y)
     return x->virtual_address < y->virtual_address;
 }
 
-void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int n_elements, PageTable* pagetable){
+void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_elements, PageTable* pagetable){
 
     Mmu::Process* proc = getProcess(pid);
 
@@ -240,30 +240,20 @@ void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int 
 
     int container_size;
 
-    switch(datatype)    // gets size of variable type in bytes
-    {
-        case(Mmu::Datatype::Char):
-        {
-            container_size = 1;
-            break;
-        }
-        case(Mmu::Datatype::Short):
-        {
-            container_size = 2;
-            break;
-        }
-        case(Mmu::Datatype::Int):
-        case(Mmu::Datatype::Float):
-        {
-            container_size = 4;
-            break;
-        }
-        case(Mmu::Datatype::Long):
-        case(Mmu::Datatype::Double):
-        {
-            container_size = 8;
-            break;
-        }
+    if(datatype == "char"){
+        container_size = 1;
+    }
+
+    else if(datatype == "short"){
+        container_size = 2;
+    }
+
+    else if(datatype == "int" || datatype == "float"){
+        container_size = 4;
+    }
+
+    else if(datatype == "double" || datatype == "long"){
+        container_size = 8;
     }
 
     int bytes_needed = container_size * n_elements;

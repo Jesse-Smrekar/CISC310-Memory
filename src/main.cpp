@@ -177,28 +177,13 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
 
     try
     {
-        int pid = std::stoi(args[1]);   //TODO pid might not correspond to a real process
+        int pid = std::stoi(args[1]);
         std::string name = args[2];
         
-        Mmu::Datatype type;
+        std::string type;
 
-        if(args[3] == "char")
-            type = Mmu::Datatype::Char;
-
-        else if(args[3] == "short")
-            type = Mmu::Datatype::Short;
-
-        else if(args[3] == "int")
-            type = Mmu::Datatype::Int;
-
-        else if(args[3] == "long")
-            type = Mmu::Datatype::Long;
-
-        else if(args[3] == "float")
-            type = Mmu::Datatype::Float;
-
-        else if(args[3] == "double")
-            type = Mmu::Datatype::Double;
+        if(args[3] == "char" || args[3] == "short" || args[3] == "int" || args[3] == "long" || args[3] == "float" || args[3] == "double")
+            type = args[3];
 
         else
         {
@@ -225,7 +210,7 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
 
 void set(std::vector<std::string> args,Hardware* hardware)
 {
-    if(args.size() < 4)
+    if(args.size() < 5)
     {
         std::cout << "ERROR: not enough arguments to command \"set\"" << std::endl;
         return;
@@ -251,19 +236,38 @@ void set(std::vector<std::string> args,Hardware* hardware)
 
     int physical_address = hardware->page_table->getPhysicalAddress(pid,virtual_address);
 
-    int container_size;
-    // enum Datatype : uint8_t {Char,Short,Int,Long,Double,Float,Free,Text,Data,Stack};
-    if(var->type == Mmu::Datatype::Char)
-        container_size = 1;
+    int count = args.size() - 4;    // number of variables to be written
+    std::vector<uint8_t> bytes;
 
-    if(var->type == Mmu::Datatype::Short)
-        container_size = 2;
+    std::cout << var->size << std::endl;
 
-    if(var->type == Mmu::Datatype::Int || var->type == Mmu::Datatype::Float)
-        container_size = 4;
+    if(var->type == "char"){
+        for(int i = 4;i < args.size();i++)
+        {
+            char add = char(args[i][0]);
+            bytes.push_back(add);
+        }
+    }
 
-    if(var->type == Mmu::Datatype::Long || var->type == Mmu::Datatype::Double)
-        container_size = 8;
+    else if(var->type == "short"){
+        std::cout << "short bitch";
+    }
+
+    else if(var->type == "int"){
+
+    }
+
+    else if(var->type == "float"){
+
+    }
+
+    else if(var->type == "double"){
+
+    }
+
+    else if(var->type == "long"){
+
+    }
 
     //TODO need to actually set the data in memory
 
@@ -335,42 +339,42 @@ void print(std::vector<std::string> args,Hardware* hardware)
             //int stride = getStride(var, hardware);
             int addr = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );    // TODO physical address isn't implemented yet
 
-            if(var->type == Mmu::Datatype::Char){
+            if(var->type == "char"){
                 for(int i=0; i<var->size; i++){
 
                     std::cout << char(hardware->memory[addr + i]) << ' ';
                 }
             }
 
-            else if(var->type == Mmu::Datatype::Short){
+            else if(var->type == "short"){
                 for(int i=0; i<var->size; i++){
 
                     std::cout << short(hardware->memory[addr + i*2]) << ' ';
                 }
             }
 
-            else if(var->type == Mmu::Datatype::Int){
+            else if(var->type == "int"){
                 for(int i=0; i<var->size; i++){
 
                     std::cout << int(hardware->memory[addr + i*4]) << ' ';
                 }
             }
 
-            else if(var->type == Mmu::Datatype::Float){
+            else if(var->type == "float"){
                 for(int i=0; i<var->size; i++){
 
                     std::cout << float(hardware->memory[addr + i*4]) << ' ';
                 }
             }
 
-            else if(var->type == Mmu::Datatype::Double){
+            else if(var->type == "double"){
                 for(int i=0; i<var->size; i++){
 
                     std::cout << double(hardware->memory[addr + i*8]) << ' ';
                 }
             }
 
-            else if(var->type == Mmu::Datatype::Long){
+            else if(var->type == "long"){
                 for(int i=0; i<var->size; i++){
 
                     std::cout << long(hardware->memory[addr + i*8]) << ' ';
@@ -390,22 +394,22 @@ int getStride(Mmu::Variable* var, Hardware* hardware){
 
     int stride;
 
-    if(var->type == Mmu::Datatype::Char)
+    if(var->type == "char")
         stride = 1;
 
-    else if(var->type == Mmu::Datatype::Short)
+    else if(var->type == "short")
         stride = 2;
 
-    else if(var->type == Mmu::Datatype::Int)
+    else if(var->type == "int")
         stride = 4;
 
-    else if(var->type == Mmu::Datatype::Float)
+    else if(var->type == "float")
         stride = 4;
 
-    else if(var->type == Mmu::Datatype::Long)
+    else if(var->type == "long")
         stride = 8;
 
-    else if(var->type == Mmu::Datatype::Double)
+    else if(var->type == "double")
         stride = 8;
 
     return stride;

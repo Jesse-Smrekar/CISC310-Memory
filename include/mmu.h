@@ -8,14 +8,12 @@
 
 class Mmu {
 public:
-    enum Datatype : uint8_t {Char,Short,Int,Long,Double,Float,Free,Text,Data,Stack};
-
     typedef struct Variable
     {
         std::string name;
         int virtual_address;
         int size;
-        Datatype type;
+        std::string type;
     } Variable;
 
     typedef struct Process
@@ -30,7 +28,7 @@ public:
     uint32_t createProcess(int text,int data,PageTable* page_table);
     void print();
     void listProcesses();
-    void allocateMemory(int pid,std::string name,Mmu::Datatype datatype,int n_elements,PageTable* pagetable);
+    void allocateMemory(int pid,std::string name,std::string datatype,int n_elements,PageTable* pagetable);
     Mmu::Variable* getVariable(int PID, std::string var_name);
     Mmu::Process* getProcess(int pid);
     //int getVarSize(std::string var_name);
