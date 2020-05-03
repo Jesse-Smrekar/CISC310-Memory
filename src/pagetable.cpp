@@ -120,8 +120,8 @@ void PageTable::terminate(int PID){
         int page = std::stoi(key.substr(delimiter+1,key.length() - delimiter));
 
         if(pid == PID){
+            _used[it->second] = false;
             _table.erase(key);
-            _used[page] = false;
         }
     }
 }

@@ -212,13 +212,16 @@ void Mmu::print()
     {
         for (j = 0; j < _processes[i]->variables.size(); j++)
         {
-            std::cout << ' ' << _processes[i]->pid << " |";
-            std::cout << ' ' << _processes[i]->variables[j]->name;
-            for(int k=_processes[i]->variables[j]->name.length(); k<14; k++) std::cout << ' ';
-            std::cout << "|   ";
-            printf("0x%08X |", _processes[i]->variables[j]->virtual_address);
-            for(int k=std::to_string(_processes[i]->variables[j]->size).length(); k<11; k++) std::cout << ' ';
-            std::cout << _processes[i]->variables[j]->size << std::endl;
+            if(_processes[i]->variables[j]->type != "free") // avoids printing free spaces
+            {   
+                std::cout << ' ' << _processes[i]->pid << " |";
+                std::cout << ' ' << _processes[i]->variables[j]->name;
+                for(int k=_processes[i]->variables[j]->name.length(); k<14; k++) std::cout << ' ';
+                std::cout << "|   ";
+                printf("0x%08X |", _processes[i]->variables[j]->virtual_address);
+                for(int k=std::to_string(_processes[i]->variables[j]->size).length(); k<11; k++) std::cout << ' ';
+                std::cout << _processes[i]->variables[j]->size << std::endl;
+            }
         }
     }
 }
@@ -300,7 +303,7 @@ void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_
             //set base addr to beginning of <FREE_SPACE>
             var->virtual_address = proc->variables[i]->virtual_address;
             //update <FREE_SPACE> stats
-            proc->variables[i]->virtual_address += (bytes_needed + 1);
+            proc->variables[i]->virtual_address += (bytes_needed);
             proc->variables[i]->size -= bytes_needed;
         }
     } 
@@ -316,4 +319,6 @@ void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_
     {
         pagetable->addEntry(proc->pid,proc->page_count++);
     }
+    
+    std::cout << var->virtual_address << std::endl;
 }

@@ -72,12 +72,11 @@ int main(int argc, char **argv)
 
             else if(tokens[0] == "free")
             {
-                std::cout << "free" << std::endl;
-            }
+                free(tokens,hardware);            }
 
             else if(tokens[0] == "terminate")
             {
-                std::cout << "terminate" << std::endl;
+                free(tokens,hardware);
             }
 
             else if(tokens[0] == "print")
@@ -374,7 +373,7 @@ void print(std::vector<std::string> args,Hardware* hardware)
         int variable_pid = std::stoi(args[1].substr(0,delimiter));
         std::string variable_name = args[1].substr(delimiter+1,args[1].length() - delimiter);
 
-        std::cout << "Process " << variable_pid << ", variable " << variable_name << std::endl;
+        // std::cout << "Process " << variable_pid << ", variable " << variable_name << std::endl;
 
         Mmu::Variable* var = hardware->mmu->getVariable(variable_pid,variable_name);
 
@@ -434,28 +433,3 @@ void print(std::vector<std::string> args,Hardware* hardware)
     }
 
 }
-
-// int getStride(Mmu::Variable* var, Hardware* hardware){
-
-//     int stride;
-
-//     if(var->type == "char")
-//         stride = 1;
-
-//     else if(var->type == "short")
-//         stride = 2;
-
-//     else if(var->type == "int")
-//         stride = 4;
-
-//     else if(var->type == "float")
-//         stride = 4;
-
-//     else if(var->type == "long")
-//         stride = 8;
-
-//     else if(var->type == "double")
-//         stride = 8;
-
-//     return stride;
-// }
