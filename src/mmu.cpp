@@ -10,16 +10,30 @@ Mmu::~Mmu()
 {
 }
 
+void Mmu::free(int PID, std::string NAME){
+
+    Mmu::Process *proc = getProcess(PID);
+
+    for(int i=0; i<proc->variables.size(); i++){
+
+        if(proc->variables[i]->name == NAME){
+
+            proc->variables.erase(proc->variables.begin() + i);
+            break;
+        }
+    }
+}
+
+
 void Mmu::terminate( int PID ){
 
-    int i;
-    for(i=0;i < _processes.size();i++)
+    for(int i=0;i < _processes.size();i++)
     {
-        if(_processes[i]->pid == PID)
+        if(_processes[i]->pid == PID){
+            _processes.erase(_processes.begin() + i);
             break;
+        }
     }
-
-    _processes.erase(_processes.begin() + i);
 }
 
 uint32_t Mmu::createProcess(int text,int data, PageTable* page_table)

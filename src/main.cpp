@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
             else if(tokens[0] == "free")
             {
-                std::cout << "free" << std::endl;
+                free(tokens, hardware);
             }
 
             else if(tokens[0] == "terminate")
@@ -85,16 +85,12 @@ int main(int argc, char **argv)
                 print(tokens, hardware);
             }
 
-            else if(tokens[0] != "exit")
-            {
-                exit(EXIT_SUCCESS);
+            else{
+                goto prompt;
             }
-
-            // for(int i=0; i<tokens.size(); i++){
-            //     std::cout << "\t " << tokens[i] << std::endl;
-            // }
         }
 
+        prompt:
         std::cout << "> ";
         std::getline (std::cin, command);
    }
@@ -181,36 +177,8 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
     {
         int pid = std::stoi(args[1]);   //TODO pid might not correspond to a real process
         std::string name = args[2];
-        
         std::string type = args[3];
-
-        /*if(args[3] == "char")
-            type = Mmu::Datatype::Char;
-
-        else if(args[3] == "short")
-            type = Mmu::Datatype::Short;
-
-        else if(args[3] == "int")
-            type = Mmu::Datatype::Int;
-
-        else if(args[3] == "long")
-            type = Mmu::Datatype::Long;
-
-        else if(args[3] == "float")
-            type = Mmu::Datatype::Float;
-
-        else if(args[3] == "double")
-            type = Mmu::Datatype::Double;
-
-        else
-        {
-            std::cout << "ERROR: invalid datatype \"" << args[3] << "\"" << std::endl;
-            return;
-        }
-        */
-
         int n_elements = stoi(args[4]);
-
         hardware->mmu->allocateMemory(pid,name,type,n_elements,hardware->page_table);
     }
 
@@ -333,7 +301,9 @@ void set(std::vector<std::string> args,Hardware* hardware)
 
 void free(std::vector<std::string> args,Hardware* hardware)
 {
-    //TODO implement function
+    int pid = std::stoi(args[1]);
+
+    hardware->mmu->free(pid, args[2]);
 }
 
 void terminate(std::vector<std::string> args,Hardware* hardware)
