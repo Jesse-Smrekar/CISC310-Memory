@@ -20,6 +20,7 @@ public:
     {
         uint32_t pid;
         std::vector<Variable*> variables;
+        int page_count;
     } Process;
     
     Mmu(int memory_size);
