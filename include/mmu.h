@@ -15,7 +15,7 @@ public:
         std::string name;
         int virtual_address;
         int size;
-        std::string type;
+        Datatype type;
     } Variable;
 
     typedef struct Process
