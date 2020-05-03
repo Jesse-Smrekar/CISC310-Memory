@@ -321,12 +321,15 @@ void set(std::vector<std::string> args,Hardware* hardware)
 
 void free(std::vector<std::string> args,Hardware* hardware)
 {
-    //TODO implement function
+    int pid = std::stoi(args[1]);
+
+    hardware->mmu->free(pid, args[2]);
 }
 
 void terminate(std::vector<std::string> args,Hardware* hardware)
 {
-    //TODO implement function
+    hardware->mmu->terminate( std::stoi(args[1]) );   
+    hardware->page_table->terminate( std::stoi(args[1]) ); 
 }
 
 void print(std::vector<std::string> args,Hardware* hardware)
@@ -432,27 +435,27 @@ void print(std::vector<std::string> args,Hardware* hardware)
 
 }
 
-int getStride(Mmu::Variable* var, Hardware* hardware){
+// int getStride(Mmu::Variable* var, Hardware* hardware){
 
-    int stride;
+//     int stride;
 
-    if(var->type == "char")
-        stride = 1;
+//     if(var->type == "char")
+//         stride = 1;
 
-    else if(var->type == "short")
-        stride = 2;
+//     else if(var->type == "short")
+//         stride = 2;
 
-    else if(var->type == "int")
-        stride = 4;
+//     else if(var->type == "int")
+//         stride = 4;
 
-    else if(var->type == "float")
-        stride = 4;
+//     else if(var->type == "float")
+//         stride = 4;
 
-    else if(var->type == "long")
-        stride = 8;
+//     else if(var->type == "long")
+//         stride = 8;
 
-    else if(var->type == "double")
-        stride = 8;
+//     else if(var->type == "double")
+//         stride = 8;
 
-    return stride;
-}
+//     return stride;
+// }

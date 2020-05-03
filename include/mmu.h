@@ -20,6 +20,7 @@ public:
     {
         uint32_t pid;
         std::vector<Variable*> variables;
+        int page_count;
     } Process;
     
     Mmu(int memory_size);
@@ -31,6 +32,8 @@ public:
     void allocateMemory(int pid,std::string name,std::string datatype,int n_elements,PageTable* pagetable);
     Mmu::Variable* getVariable(int PID, std::string var_name);
     Mmu::Process* getProcess(int pid);
+    void terminate( int PID );
+    void free(int PID, std::string name);
     //int getVarSize(std::string var_name);
     //int getVarStride(std::string var_name);
 

@@ -10,6 +10,32 @@ Mmu::~Mmu()
 {
 }
 
+void Mmu::free(int PID, std::string NAME){  //TODO erase spaces in pagetable?
+
+    Mmu::Process *proc = getProcess(PID);
+
+    for(int i=0; i<proc->variables.size(); i++){
+
+        if(proc->variables[i]->name == NAME){
+
+            proc->variables.erase(proc->variables.begin() + i);
+            break;
+        }
+    }
+}
+
+
+void Mmu::terminate( int PID ){ //TODO erase spaces in pagetable?
+
+    for(int i=0;i < _processes.size();i++)
+    {
+        if(_processes[i]->pid == PID){
+            _processes.erase(_processes.begin() + i);
+            break;
+        }
+    }
+}
+
 uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
 {
     Process *proc = new Process();
