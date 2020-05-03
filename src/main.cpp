@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
             else if(tokens[0] == "terminate")
             {
-                std::cout << "terminate" << std::endl;
+                terminate(tokens, hardware);
             }
 
             else if(tokens[0] == "print")
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 
             else if(tokens[0] != "exit")
             {
-                std::cout << "ERROR: unrecognized command" << std::endl;
+                exit(EXIT_SUCCESS);
             }
 
             // for(int i=0; i<tokens.size(); i++){
@@ -338,7 +338,8 @@ void free(std::vector<std::string> args,Hardware* hardware)
 
 void terminate(std::vector<std::string> args,Hardware* hardware)
 {
-    exit(EXIT_SUCCESS);
+    hardware->mmu->terminate( std::stoi(args[1]) );   
+    hardware->page_table->terminate( std::stoi(args[1]) ); 
 }
 
 void print(std::vector<std::string> args,Hardware* hardware)

@@ -20,6 +20,7 @@ public:
     void addEntry(uint32_t pid, int page_number);
     int getPhysicalAddress(uint32_t pid, int virtual_address);
     void print();
+    void terminate(int PID);
 
     int pageSize() const;
 };

@@ -10,6 +10,18 @@ Mmu::~Mmu()
 {
 }
 
+void Mmu::terminate( int PID ){
+
+    int i;
+    for(i=0;i < _processes.size();i++)
+    {
+        if(_processes[i]->pid == PID)
+            break;
+    }
+
+    _processes.erase(_processes.begin() + i);
+}
+
 uint32_t Mmu::createProcess(int text,int data, PageTable* page_table)
 {
     Process *proc = new Process();

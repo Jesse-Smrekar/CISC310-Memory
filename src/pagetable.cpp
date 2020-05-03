@@ -108,6 +108,24 @@ void PageTable::print()
     }
 }
 
+void PageTable::terminate(int PID){
+
+    for(auto it = _table.begin(); it != _table.end(); it++)
+    {   
+        std::string key = it->first;
+
+        int delimiter = key.find_first_of('|');
+        int pid = std::stoi(key.substr(0,delimiter));
+        int page = std::stoi(key.substr(delimiter+1,key.length() - delimiter));
+
+        if(pid == PID){
+            _table.erase(key);
+            _used[page] = false;
+        }
+    }
+
+}
+
 int PageTable::pageSize() const
 {
     return _page_size;
