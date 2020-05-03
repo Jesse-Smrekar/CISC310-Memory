@@ -20,6 +20,7 @@ void free(std::vector<std::string> args,Hardware* hardware);
 void terminate(std::vector<std::string> args,Hardware* hardware);
 void print(std::vector<std::string> args,Hardware* hardware);
 int getStride(Mmu::Variable* var, Hardware* hardware);
+void memDump(int addr, Hardware* hardware);
 
 int main(int argc, char **argv)
 {
@@ -84,10 +85,20 @@ int main(int argc, char **argv)
                 print(tokens, hardware);
             }
 
+            else if(tokens[0] == "dump"){
+
+                memDump(std::stoi(tokens[1]), hardware);
+            }
+
             else if(tokens[0] != "exit")
             {
                 std::cout << "ERROR: unrecognized command" << std::endl;
             }
+
+
+            // for(int i=0; i<tokens.size(); i++){
+            //     std::cout << "\t " << tokens[i] << std::endl;
+            // }
         }
 
         std::cout << "> ";
@@ -218,6 +229,8 @@ void set(std::vector<std::string> args,Hardware* hardware)
     int value = 0;
     bool overflow= false;
 
+    std::cout << "ADDRESS: " << addr << std::endl;
+
     while( value < args.size()-4 ){
 
         if(var->type == "char"){
@@ -314,11 +327,28 @@ void set(std::vector<std::string> args,Hardware* hardware)
     }
 }
 
+////////////////// TEST FUNCTION /////////////////////////
+
+
+void memDump(int addr, Hardware* hardware){
+
+    std::cout << "MEM   | contents" << std::endl;
+
+    for(int i=0; i<12; i++){
+
+        printf( "%6d| %X\n", addr+i, hardware->memory[addr+i] );
+        //std::cout << addr+ihardware->memory[addr+i]
+    }
+
+}
+
+///////////////////////////////////////////////////////////
+
 void free(std::vector<std::string> args,Hardware* hardware)
 {
     int pid = std::stoi(args[1]);
 
-    hardware->mmu->free(pid, args[2]);  //TODO throws an error here
+    hardware->mmu->free(pid, args[2]);
 }
 
 void terminate(std::vector<std::string> args,Hardware* hardware)
@@ -385,23 +415,39 @@ void print(std::vector<std::string> args,Hardware* hardware)
             }
 
             else if(var->type == "short"){
-                for(int i=0; i<var->size/2; i++){
+                for(int i=0; i<var->size/2; i+=2){
 
-                    std::cout << short(hardware->memory[addr + i*2]) << ' ';
+                    std::cout << short(hardware->memory[addr + i]) << ' ';
                 }
             }
 
             else if(var->type == "int"){
-                for(int i=0; i<var->size/4; i++){
+                for(int i=0; i<var->size/4; i+=4){
 
-                    std::cout << int(hardware->memory[addr + i*4]) << ' ';
+                    std::cout << int(hardware->memory[addr + i]) << ' ';
                 }
             }
 
             else if(var->type == "float"){
-                for(int i=0; i<var->size/4; i++){
+                for(int i=0; i<var->size/4; i+=4){
 
-                    std::cout << float(hardware->memory[addr + i*4]) << ' ';
+                    /*
+                        union{
+    
+                            float f;
+                            uint8_t * buffer;
+                        }u;
+                    */
+
+                    // memory is stored in little-endian, hence the backwards bit shifting
+
+                    //use the dump <address> command while running to program to get a memory 
+                    //    hex dump of the next 12 entries
+
+
+                    printf( "%f ", (float)(hardware->memory[addr + i] | hardware->memory[addr + i + 1]<<8 | hardware->memory[addr + i + 2]<<16 | hardware->memory[addr + i + 3]<<24 ));
+
+                    //memcpy(&f, &buffer, sizeof(f));
                 }
             }
 
@@ -413,9 +459,9 @@ void print(std::vector<std::string> args,Hardware* hardware)
             }
 
             else if(var->type == "long"){
-                for(int i=0; i<var->size/8; i++){
+                for(int i=0; i<var->size/8; i+=8){
 
-                    std::cout << long(hardware->memory[addr + i*8]) << ' ';
+                    std::cout << long(hardware->memory[addr + i]) << ' ';
                 }
             }
             
