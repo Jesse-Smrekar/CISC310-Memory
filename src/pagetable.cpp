@@ -16,6 +16,9 @@ void PageTable::addEntry(uint32_t pid, int page_number)
     // Combination of pid and page number act as the key to look up frame number
     std::string entry = std::to_string(pid) + "|" + std::to_string(page_number);
 
+    if(_table.count(entry) > 0)
+        return;
+
     // Find free frame
     int frame = 0;
     bool found = false;
@@ -56,7 +59,6 @@ int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)
     if (_table.count(entry) > 0)
     {
         int frame = _table.find(entry)->second;
-        std::cout << "FRAME: " << frame << std::endl;
 
         frame *= _page_size;
 

@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 
             else if(tokens[0] == "terminate")
             {
-                free(tokens,hardware);
+                terminate(tokens,hardware);
             }
 
             else if(tokens[0] == "print")
@@ -88,10 +88,6 @@ int main(int argc, char **argv)
             {
                 std::cout << "ERROR: unrecognized command" << std::endl;
             }
-
-            // for(int i=0; i<tokens.size(); i++){
-            //     std::cout << "\t " << tokens[i] << std::endl;
-            // }
         }
 
         std::cout << "> ";
@@ -322,7 +318,7 @@ void free(std::vector<std::string> args,Hardware* hardware)
 {
     int pid = std::stoi(args[1]);
 
-    hardware->mmu->free(pid, args[2]);
+    hardware->mmu->free(pid, args[2]);  //TODO throws an error here
 }
 
 void terminate(std::vector<std::string> args,Hardware* hardware)

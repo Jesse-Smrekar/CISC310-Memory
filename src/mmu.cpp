@@ -18,7 +18,10 @@ void Mmu::free(int PID, std::string NAME){  //TODO erase spaces in pagetable?
 
         if(proc->variables[i]->name == NAME){
 
-            proc->variables.erase(proc->variables.begin() + i);
+            Variable* freed = proc->variables[i];
+
+            freed->name = "FREE_SPACE";
+            freed->type = "free";
             break;
         }
     }
@@ -296,29 +299,43 @@ void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_
     var->size = bytes_needed;
     var->type = datatype;
 
-    for(int i=0; i<proc->variables.size(); i++){
+    //iterate through list
+    //if variable is a free space large enough:
+        // place new variable at beginning
+        // resize free space variable to fit
 
-        if(proc->variables[i]->name == "<FREE_SPACE>" ){
+    for(auto it = proc->variables.begin();it != proc->variables.end();++it)
+    {
+        Variable* ptr = *it;
 
-            //set base addr to beginning of <FREE_SPACE>
-            var->virtual_address = proc->variables[i]->virtual_address;
-            //update <FREE_SPACE> stats
-            proc->variables[i]->virtual_address += (bytes_needed);
-            proc->variables[i]->size -= bytes_needed;
+        if(ptr->type == "free" && ptr->size >= var->size)   // var is a large enough empty space
+        {
+            var->virtual_address = ptr->virtual_address;
+
+            ptr->virtual_address += var->size;
+            ptr->size -= var->size;
+
+            break;
         }
-    } 
+    }
+
     proc->variables.push_back(var);
 
     std::sort(proc->variables.begin(),proc->variables.end(),variableSort);
 
-    // calculate number of new pages needed
+    int new_page_count = proc->variables.back()->virtual_address / pagetable->pageSize();
 
-    int pages_needed = var->size / pagetable->pageSize();
+    if(proc->variables.back()->virtual_address % pagetable->pageSize() != 0)
+        new_page_count++;
 
-    for(int i = 0;i < pages_needed;i++) //NOT SUPER WELL TESTED
-    {
-        pagetable->addEntry(proc->pid,proc->page_count++);
-    }
-    
+    if(new_page_count > proc->page_count)
+        for(int i = 0;i < new_page_count;i++)
+            pagetable->addEntry(proc->pid,i);
+
+    if(new_page_count < proc->page_count)
+        std::cout << "FREE A PAGE" << std::endl;
+
+    proc->page_count = new_page_count;
+
     std::cout << var->virtual_address << std::endl;
 }
