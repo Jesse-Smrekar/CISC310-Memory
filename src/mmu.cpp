@@ -98,9 +98,7 @@ Mmu::Variable* Mmu::getVariable(int PID, std::string var_name){
                     break;
                 }
             }
-        }
-
-        
+        }        
     }
     return NULL; 
 }
@@ -287,34 +285,16 @@ void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int 
     } 
     proc->variables.push_back(var);
 
-    // std::cout << "VARIABLES BEFORE SORT" << std::endl;
-
-    // for(auto it = proc->variables.begin();it != proc->variables.end();it++)
-    // {
-    //     Variable* test = *it;
-
-    //     std::cout << test->name << std::endl;
-    // }
-
     std::sort(proc->variables.begin(),proc->variables.end(),variableSort);
-
-    // std::cout << "VARIABLES AFTER SORT" << std::endl;
-
-    // for(auto it = proc->variables.begin();it != proc->variables.end();it++)
-    // {
-    //     Variable* test = *it;
-
-    //     std::cout << test->name << std::endl;
-    // }    
 
     // calculate number of new pages needed
 
     int pages_needed = 0;
 
+    // space left in the current page
     int space_remaining = pagetable->pageSize() - (var->virtual_address % pagetable->pageSize());  //DOESN'T WORK
 
-    std::cout << "space remaining: " << space_remaining << std::endl;
-        // space left in the current page
+    // std::cout << "space remaining: " << space_remaining << std::endl;
 
     if(var->size > space_remaining) // if the new variable can't fit in the last page, add new pages
         pages_needed = (pages_needed/pagetable->pageSize());
@@ -323,5 +303,4 @@ void Mmu::allocateMemory(int pid, std::string name, Mmu::Datatype datatype, int 
     {
         pagetable->addEntry(proc->pid,i);
     }
-
 }

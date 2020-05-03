@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 
             else if(tokens[0] == "set")
             {
-                std::cout << "set" << std::endl;
+                set(tokens,hardware);
             }
 
             else if(tokens[0] == "free")
@@ -120,7 +120,7 @@ void printStartMessage(int page_size)
     std::cout << std::endl;
 }
 
-void create(std::vector<std::string> args,Hardware* hardware)
+void create(std::vector<std::string> args,Hardware* hardware)   //SHOULD BE WORKING
 {
     if(args.size() != 3)
     {    
@@ -225,8 +225,31 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
 
 void set(std::vector<std::string> args,Hardware* hardware)
 {
-    //TODO figure out how to error check this
+    if(args.size() < 4)
+    {
+        std::cout << "ERROR: not enough arguments to command \"set\"" << std::endl;
+        return;
+    }
 
+    int pid = std::stoi(args[1]);
+    std::string var_name = args[2];
+    int offset = std::stoi(args[3]);
+
+    if(hardware->mmu->getProcess(pid) == NULL)
+    {
+        std::cout << "ERROR: process does not exist" << std::endl;
+    }
+
+    Mmu::Variable* var = hardware->mmu->getVariable(pid,var_name);
+
+    if(var == NULL)
+    {
+        std::cout << "ERROR: variable does not exist" << std::endl;
+    }
+
+    int virtual_address = var->virtual_address;
+
+    int physical_address = hardware->page_table->getPhysicalAddress(pid,virtual_address);
     // set <PID> <var_name> <offset> <value_0> <value_1> ... <value_n>
         // look up addresss of variable using page table
             // throw error if variable isn't real/user tries to buffer overflow(?)
