@@ -14,6 +14,7 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
 {
     Process *proc = new Process();
     proc->pid = _next_pid;
+    proc->page_count = 0;
 
     int v_addr = 0;
 
@@ -69,13 +70,8 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
 
     for(int i = 0;i < pages_needed;i++) //NOT SUPER WELL TESTED
     {
-        page_table->addEntry(proc->pid,i);
+        page_table->addEntry(proc->pid,proc->page_count++);
     }
-    
-    // for(int i = 0;i < proc->variables.size();i++)
-    // {
-    //     std::cout << "Name: " << proc->variables[i]->name << " | Address: " << proc->variables[i]->virtual_address << " | Size: " << proc->variables[i]->size << std::endl;
-    // }
 
     _next_pid++;
     return proc->pid;
@@ -94,6 +90,7 @@ Mmu::Variable* Mmu::getVariable(int PID, std::string var_name){
             for (j = 0; j < _processes[i]->variables.size(); j++)
             {
                 if(_processes[i]->variables[j]->name == var_name){
+
                     return _processes[i]->variables[j];
                     break;
                 }
@@ -238,6 +235,8 @@ void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_
         return;
     }
 
+    Variable* var = new Variable();
+
     int container_size;
 
     if(datatype == "char"){
@@ -258,9 +257,15 @@ void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_
 
     int bytes_needed = container_size * n_elements;
 
-    Variable* var = new Variable();
+    if(bytes_needed < 0)
+    {
+        std::cout << "ERROR: memory overflow, aborting allocation" << std::endl;
+        return;
+    }
+
     var->name = name;
     var->size = bytes_needed;
+    var->type = datatype;
 
     for(int i=0; i<proc->variables.size(); i++){
 
@@ -279,18 +284,10 @@ void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_
 
     // calculate number of new pages needed
 
-    int pages_needed = 0;
-
-    // space left in the current page
-    int space_remaining = pagetable->pageSize() - (var->virtual_address % pagetable->pageSize());  //DOESN'T WORK
-
-    // std::cout << "space remaining: " << space_remaining << std::endl;
-
-    if(var->size > space_remaining) // if the new variable can't fit in the last page, add new pages
-        pages_needed = (pages_needed/pagetable->pageSize());
+    int pages_needed = var->size / pagetable->pageSize();
 
     for(int i = 0;i < pages_needed;i++) //NOT SUPER WELL TESTED
     {
-        pagetable->addEntry(proc->pid,i);
+        pagetable->addEntry(proc->pid,proc->page_count++);
     }
 }
