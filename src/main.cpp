@@ -209,73 +209,114 @@ void allocate(std::vector<std::string> args,Hardware* hardware)
 }
 
 void set(std::vector<std::string> args,Hardware* hardware)
-{
-    if(args.size() < 5)
-    {
-        std::cout << "ERROR: not enough arguments to command \"set\"" << std::endl;
+{   
+    // set <PID> <var_name> <offset> <value_0> <value_1> ... <value_n>
+    Mmu::Variable* var = hardware->mmu->getVariable( std::stoi(args[1]), args[2] );
+
+    if(var == NULL){
+        std::cout << "ERROR: Invalid variable name: " << args[2] << std::endl;
         return;
     }
 
-    int pid = std::stoi(args[1]);
-    std::string var_name = args[2];
-    int offset = std::stoi(args[3]);
+    int base = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );
+    int addr = base + (std::stoi(args[3]));
+    int value = 0;
+    bool overflow= false;
 
-    if(hardware->mmu->getProcess(pid) == NULL)
-    {
-        std::cout << "ERROR: process does not exist" << std::endl;
-    }
+    while( value < args.size()-4 ){
 
-    Mmu::Variable* var = hardware->mmu->getVariable(pid,var_name);
+        if(var->type == "char"){
 
-    if(var == NULL)
-    {
-        std::cout << "ERROR: variable does not exist" << std::endl;
-    }
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
 
-    int virtual_address = var->virtual_address;
-
-    int physical_address = hardware->page_table->getPhysicalAddress(pid,virtual_address);
-
-    int count = args.size() - 4;    // number of variables to be written
-    std::vector<uint8_t> bytes;
-
-    std::cout << var->size << std::endl;
-
-    if(var->type == "char"){
-        for(int i = 4;i < args.size();i++)
-        {
-            char add = char(args[i][0]);
-            bytes.push_back(add);
+            hardware->memory[addr] = ((unsigned char*)args[value+4].c_str())[0];
+            addr ++;            
         }
+
+        else if(var->type == "short"){
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            short buffer = (short)std::stoi(args[value+4]);
+            for(int i=0; i<2; i++){
+                hardware->memory[addr] = ((unsigned char*)&buffer)[i];
+                addr ++;
+            }
+        }
+
+        else if(var->type == "int"){
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            int buffer = std::stoi(args[value+4]);
+            for(int i=0; i<4; i++){
+                hardware->memory[addr] = ((unsigned char*)&buffer)[i];
+                addr ++;
+            }
+        }
+
+        else if(var->type == "float"){
+            addr = base + (stoi(args[3]) * 4);
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            float buffer = std::stof(args[value+4]);
+            //for(int i=0; i<4; i++){
+                memcpy(&hardware->memory[addr], &buffer, sizeof(std::stof(args[value+4])));
+                //hardware->memory[addr] = ((unsigned char*)std::stof(args[value+4]))[i];
+                addr +=4;
+           // }
+        }
+
+        else if(var->type == "long"){
+            addr = base + (stoi(args[3]) * 8);
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            long buffer = std::stol(args[value+4]);
+            for(int i=0; i<8; i++){
+                hardware->memory[addr] = ((unsigned char*)&buffer)[i];
+                addr ++;
+            }
+        }
+
+        else if(var->type == "double"){
+            addr = base + (stoi(args[3]) * 8);
+
+            if(addr > base + var->size){
+                overflow = true;
+                break;
+            }
+
+            double buffer = std::stod(args[value+4]);
+            //for(int i=0; i<8; i++){
+                memcpy(&hardware->memory[addr], &buffer, sizeof(std::stod(args[value+4])));
+                //hardware->memory[addr] = ((unsigned char*)std::stod(args[value+4]))[i];
+                addr +=8;
+            //}
+        }
+
+        value++;
     }
 
-    else if(var->type == "short"){
-        std::cout << "short bitch";
+    if(overflow){
+        std::cout << "ERROR: variable overflow - not enuogh space allocated to " << var->name << std::endl;        
     }
-
-    else if(var->type == "int"){
-
-    }
-
-    else if(var->type == "float"){
-
-    }
-
-    else if(var->type == "double"){
-
-    }
-
-    else if(var->type == "long"){
-
-    }
-
-    //TODO need to actually set the data in memory
-
-    // set <PID> <var_name> <offset> <value_0> <value_1> ... <value_n>
-        // look up addresss of variable using page table
-            // throw error if variable isn't real/user tries to buffer overflow(?)
-        // change value of variable in the memory array
-
 }
 
 void free(std::vector<std::string> args,Hardware* hardware)
@@ -333,11 +374,10 @@ void print(std::vector<std::string> args,Hardware* hardware)
         std::cout << "Process " << variable_pid << ", variable " << variable_name << std::endl;
 
         Mmu::Variable* var = hardware->mmu->getVariable(variable_pid,variable_name);
-        
+
         if(var != NULL){
 
-            //int stride = getStride(var, hardware);
-            int addr = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );    // TODO physical address isn't implemented yet
+            int addr = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );
 
             if(var->type == "char"){
                 for(int i=0; i<var->size; i++){
@@ -347,39 +387,41 @@ void print(std::vector<std::string> args,Hardware* hardware)
             }
 
             else if(var->type == "short"){
-                for(int i=0; i<var->size; i++){
+                for(int i=0; i<var->size/2; i++){
 
                     std::cout << short(hardware->memory[addr + i*2]) << ' ';
                 }
             }
 
             else if(var->type == "int"){
-                for(int i=0; i<var->size; i++){
+                for(int i=0; i<var->size/4; i++){
 
                     std::cout << int(hardware->memory[addr + i*4]) << ' ';
                 }
             }
 
             else if(var->type == "float"){
-                for(int i=0; i<var->size; i++){
+                for(int i=0; i<var->size/4; i++){
 
                     std::cout << float(hardware->memory[addr + i*4]) << ' ';
                 }
             }
 
             else if(var->type == "double"){
-                for(int i=0; i<var->size; i++){
+                for(int i=0; i<var->size/8; i++){
 
                     std::cout << double(hardware->memory[addr + i*8]) << ' ';
                 }
             }
 
             else if(var->type == "long"){
-                for(int i=0; i<var->size; i++){
+                for(int i=0; i<var->size/8; i++){
 
                     std::cout << long(hardware->memory[addr + i*8]) << ' ';
                 }
             }
+            
+            std::cout << std::endl;
         }
 
         else
