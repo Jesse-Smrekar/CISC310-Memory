@@ -41,6 +41,7 @@ private:
     uint32_t _next_pid;
     int _max_size;
     std::vector<Process*> _processes;
+    void condenseFrees(Mmu::Process* proc);
 };
 
 

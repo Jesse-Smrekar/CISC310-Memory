@@ -23,6 +23,7 @@ public:
     void terminate(int PID);
 
     int pageSize() const;
+    void freePage();
 };
 
 #endif // __PAGETABLE_H_

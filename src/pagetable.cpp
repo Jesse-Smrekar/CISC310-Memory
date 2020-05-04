@@ -132,3 +132,8 @@ int PageTable::pageSize() const
 {
     return _page_size;
 }
+
+void PageTable::freePage()
+{
+    
+}

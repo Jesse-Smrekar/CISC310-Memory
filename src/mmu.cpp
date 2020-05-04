@@ -25,6 +25,8 @@ void Mmu::free(int PID, std::string NAME){
             break;
         }
     }
+
+    condenseFrees(proc);
 }
 
 
@@ -338,4 +340,28 @@ void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_
     proc->page_count = new_page_count;
 
     std::cout << var->virtual_address << std::endl;
+}
+
+void Mmu::condenseFrees(Mmu::Process* proc)
+{// combines free spaces together into larger free spaces
+
+    bool done = false;
+
+    while(!done)
+    {
+        done = true;
+
+        for(int i = 0;(i+1) < proc->variables.size();i++)
+        {
+            if (proc->variables[i]->type == "free" && proc->variables[i+1]->type == "free") // two frees together
+            {
+                done = false;
+
+                proc->variables[i]->size += proc->variables[i+1]->size;
+
+                proc->variables.erase(proc->variables.begin()+i+1);
+                break;
+            }
+        }
+    }
 }

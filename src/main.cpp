@@ -356,6 +356,7 @@ void memDump(int addr, Hardware* hardware){
 
 void free(std::vector<std::string> args,Hardware* hardware)
 {
+    // if(args.size() != 3)
     int pid = std::stoi(args[1]);
 
     hardware->mmu->free(pid, args[2]);
