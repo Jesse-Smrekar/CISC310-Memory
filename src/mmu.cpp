@@ -100,7 +100,7 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
     if(v_addr % page_table->pageSize() != 0)
         ++pages_needed;
 
-    for(int i = 0;i < pages_needed;i++) //NOT SUPER WELL TESTED
+    for(int i = 0;i < pages_needed;i++)
     {
         page_table->addEntry(proc->pid,proc->page_count++);
     }
@@ -109,8 +109,6 @@ uint32_t Mmu::createProcess(int text,int data,PageTable* page_table)
     return proc->pid;
 }
 
-// IMPLEMENTED BY JESSE, MIGHT BE FUCKED
-    // lol
 Mmu::Variable* Mmu::getVariable(int PID, std::string var_name){
 
     int i, j;
@@ -131,82 +129,6 @@ Mmu::Variable* Mmu::getVariable(int PID, std::string var_name){
     }
     return NULL; 
 }
-
-
-/*
-
-
-// IMPLEMENTED BY JESSE, MIGHT BE FUCKED
-int Mmu::getVarSize(std::string var_name){
-
-    int i;
-    bool found = false;
-    for(i=0; i<proc->variables.size(); i++){
-
-        if(proc->variables[i] == var_name){
-            found = true;
-            break;
-        }
-    }
-
-    if(found){
-
-        return proc->variables[i]->size;
-    }
-    else{
-        return -1;
-    }
-}
-
-// IMPLEMENTED BY JESSE, MIGHT BE FUCKED
-int Mmu::getVarStride(std::string var_name){
-
-    int i;
-    bool found = false;
-    for(i=0; i<proc->variables.size(); i++){
-
-        if(proc->variables[i] == var_name){
-            found = true;
-            break;
-        }
-    }
-
-    if(found){
-
-        int stride = -1;
-
-        switch(proc->variables[i]->type)    // gets size of variable type in bytes
-        {
-            case(Mmu::Datatype::Char):
-            {
-                stride = 1;
-                break;
-            }
-            case(Mmu::Datatype::Short):
-            {
-                stride = 2;
-                break;
-            }
-            case(Mmu::Datatype::Int):
-            case(Mmu::Datatype::Float):
-            {
-                stride = 4;
-                break;
-            }
-            case(Mmu::Datatype::Long):
-            case(Mmu::Datatype::Double):
-            {
-                stride = 8;
-                break;
-            }
-        }
-    }
-    
-    return stride;
-}
-
-
-*/
 
 void Mmu::print()
 {
@@ -234,7 +156,6 @@ void Mmu::print()
 
 void Mmu::listProcesses()
 {// used for command 'print processes'
-    //std::cout << "PIDs:" << std::endl;
     
     for(auto it = _processes.begin();it != _processes.end();it++)
     {

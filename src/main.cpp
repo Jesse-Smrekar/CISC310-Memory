@@ -493,7 +493,7 @@ void print(std::vector<std::string> args,Hardware* hardware)
 
         else
         {
-            std::cout << "ERROR: invalid argument to command \"print\"" << std::endl;   //TODO error checking might not be complete
+            std::cout << "ERROR: invalid argument to command \"print\"" << std::endl;
         }
     }
 

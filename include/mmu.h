@@ -34,8 +34,6 @@ public:
     Mmu::Process* getProcess(int pid);
     void terminate( int PID );
     void free(int PID, std::string NAME,PageTable* pagetable);
-    //int getVarSize(std::string var_name);
-    //int getVarStride(std::string var_name);
 
 private:
     uint32_t _next_pid;
