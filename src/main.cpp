@@ -356,7 +356,12 @@ void memDump(int addr, Hardware* hardware){
 
 void free(std::vector<std::string> args,Hardware* hardware)
 {
-    // if(args.size() != 3)
+    if(args.size() != 3)
+    {
+        std::cout << "ERROR: wrong number of arguments to command \"free\"" << std::endl;
+        return;
+    }
+
     int pid = std::stoi(args[1]);
 
     hardware->mmu->free(pid, args[2]);
@@ -364,6 +369,12 @@ void free(std::vector<std::string> args,Hardware* hardware)
 
 void terminate(std::vector<std::string> args,Hardware* hardware)
 {
+    if(args.size() != 2)
+    {
+        std::cout << "ERROR: wrong number of arguments to command \"terminate\"" << std::endl;
+        return;
+    }
+
     hardware->mmu->terminate( std::stoi(args[1]) );   
     hardware->page_table->terminate( std::stoi(args[1]) ); 
 }
