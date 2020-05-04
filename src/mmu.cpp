@@ -10,7 +10,7 @@ Mmu::~Mmu()
 {
 }
 
-void Mmu::free(int PID, std::string NAME){  //TODO erase spaces in pagetable?
+void Mmu::free(int PID, std::string NAME){
 
     Mmu::Process *proc = getProcess(PID);
 
@@ -28,7 +28,7 @@ void Mmu::free(int PID, std::string NAME){  //TODO erase spaces in pagetable?
 }
 
 
-void Mmu::terminate( int PID ){ //TODO erase spaces in pagetable?
+void Mmu::terminate( int PID ){
 
     for(int i=0;i < _processes.size();i++)
     {

@@ -225,11 +225,27 @@ void set(std::vector<std::string> args,Hardware* hardware)
     }
 
     int base = hardware->page_table->getPhysicalAddress( std::stoi(args[1]), var->virtual_address );
-    int addr = base + (std::stoi(args[3]));
+    int addr = base;// + (std::stoi(args[3]));
     int value = 0;
     bool overflow= false;
 
-    std::cout << "ADDRESS: " << addr << std::endl;
+    if(var->type == "char")
+    {
+        addr += std::stoi(args[3]);
+    }
+    if(var->type == "short")
+    {
+        addr += std::stoi(args[3]) * 2;
+    }
+    if(var->type == "int" || var->type == "float")
+    {
+        addr += std::stoi(args[3]) * 4;
+    }
+    if(var->type == "long" || var->type == "double")
+    {
+        addr += std::stoi(args[3]) * 8;
+    }
+
 
     while( value < args.size()-4 ){
 
@@ -273,7 +289,6 @@ void set(std::vector<std::string> args,Hardware* hardware)
         }
 
         else if(var->type == "float"){
-            addr = base + (stoi(args[3]) * 4);
 
             if(addr > base + var->size){
                 overflow = true;
@@ -281,15 +296,12 @@ void set(std::vector<std::string> args,Hardware* hardware)
             }
 
             float buffer = std::stof(args[value+4]);
-            //for(int i=0; i<4; i++){
-                memcpy(&hardware->memory[addr], &buffer, sizeof(std::stof(args[value+4])));
-                //hardware->memory[addr] = ((unsigned char*)std::stof(args[value+4]))[i];
-                addr +=4;
-           // }
+
+            memcpy(&hardware->memory[addr], &buffer, sizeof(buffer));
+            addr += 4;
         }
 
         else if(var->type == "long"){
-            addr = base + (stoi(args[3]) * 8);
 
             if(addr > base + var->size){
                 overflow = true;
@@ -304,7 +316,6 @@ void set(std::vector<std::string> args,Hardware* hardware)
         }
 
         else if(var->type == "double"){
-            addr = base + (stoi(args[3]) * 8);
 
             if(addr > base + var->size){
                 overflow = true;
@@ -312,11 +323,10 @@ void set(std::vector<std::string> args,Hardware* hardware)
             }
 
             double buffer = std::stod(args[value+4]);
-            //for(int i=0; i<8; i++){
-                memcpy(&hardware->memory[addr], &buffer, sizeof(std::stod(args[value+4])));
-                //hardware->memory[addr] = ((unsigned char*)std::stod(args[value+4]))[i];
-                addr +=8;
-            //}
+            std::cout << "DEBUG " << buffer << std::endl;
+
+            memcpy(&hardware->memory[addr], &buffer, sizeof(buffer));
+            addr += 8;
         }
 
         value++;
@@ -399,8 +409,6 @@ void print(std::vector<std::string> args,Hardware* hardware)
         int variable_pid = std::stoi(args[1].substr(0,delimiter));
         std::string variable_name = args[1].substr(delimiter+1,args[1].length() - delimiter);
 
-        // std::cout << "Process " << variable_pid << ", variable " << variable_name << std::endl;
-
         Mmu::Variable* var = hardware->mmu->getVariable(variable_pid,variable_name);
 
         if(var != NULL){
@@ -415,53 +423,57 @@ void print(std::vector<std::string> args,Hardware* hardware)
             }
 
             else if(var->type == "short"){
-                for(int i=0; i<var->size/2; i+=2){
+                short buffer = 0;
 
-                    std::cout << short(hardware->memory[addr + i]) << ' ';
+                for(int i=0; i<var->size/2; i++){
+
+                    memcpy(&buffer,&hardware->memory[addr + 2*i],2);
+
+                    std::cout << buffer << ' ';
                 }
             }
 
             else if(var->type == "int"){
-                for(int i=0; i<var->size/4; i+=4){
+                int buffer = 0;
 
-                    std::cout << int(hardware->memory[addr + i]) << ' ';
+                for(int i=0; i<var->size/4; i++){
+
+                    memcpy(&buffer,&hardware->memory[addr + 4*i],4);
+
+                    std::cout << buffer << ' ';
                 }
             }
 
             else if(var->type == "float"){
-                for(int i=0; i<var->size/4; i+=4){
+                float buffer = 0;
 
-                    /*
-                        union{
-    
-                            float f;
-                            uint8_t * buffer;
-                        }u;
-                    */
+                for(int i=0; i<var->size/4; i++){
 
-                    // memory is stored in little-endian, hence the backwards bit shifting
+                    memcpy(&buffer,&hardware->memory[addr + 4*i],4);
 
-                    //use the dump <address> command while running to program to get a memory 
-                    //    hex dump of the next 12 entries
-
-
-                    printf( "%f ", (float)(hardware->memory[addr + i] | hardware->memory[addr + i + 1]<<8 | hardware->memory[addr + i + 2]<<16 | hardware->memory[addr + i + 3]<<24 ));
-
-                    //memcpy(&f, &buffer, sizeof(f));
+                    std::cout << buffer << ' ';
                 }
             }
 
             else if(var->type == "double"){
+               double buffer = 0;
+
                 for(int i=0; i<var->size/8; i++){
 
-                    std::cout << double(hardware->memory[addr + i*8]) << ' ';
+                    memcpy(&buffer,&hardware->memory[addr + 8*i],8);
+
+                    std::cout << buffer << ' ';
                 }
             }
 
             else if(var->type == "long"){
-                for(int i=0; i<var->size/8; i+=8){
+               long buffer = 0;
 
-                    std::cout << long(hardware->memory[addr + i]) << ' ';
+                for(int i=0; i<var->size/8; i++){
+
+                    memcpy(&buffer,&hardware->memory[addr + 8*i],8);
+
+                    std::cout << buffer << ' ';
                 }
             }
             
