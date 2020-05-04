@@ -133,7 +133,9 @@ int PageTable::pageSize() const
     return _page_size;
 }
 
-void PageTable::freePage()
+void PageTable::free(int pid,int page)
 {
-    
+    std::string entry = std::to_string(pid) + "|" + std::to_string(page);
+
+    _table.erase(entry);
 }

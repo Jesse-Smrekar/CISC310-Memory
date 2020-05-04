@@ -10,7 +10,7 @@ Mmu::~Mmu()
 {
 }
 
-void Mmu::free(int PID, std::string NAME){
+void Mmu::free(int PID, std::string NAME,PageTable* pagetable){
 
     Mmu::Process *proc = getProcess(PID);
 
@@ -27,6 +27,7 @@ void Mmu::free(int PID, std::string NAME){
     }
 
     condenseFrees(proc);
+    freeEmpties(proc,pagetable->pageSize(),pagetable);
 }
 
 
@@ -334,8 +335,7 @@ void Mmu::allocateMemory(int pid, std::string name, std::string datatype, int n_
         for(int i = 0;i < new_page_count;i++)
             pagetable->addEntry(proc->pid,i);
 
-    if(new_page_count < proc->page_count)
-        std::cout << "FREE A PAGE" << std::endl;
+    freeEmpties(proc,pagetable->pageSize(),pagetable);
 
     proc->page_count = new_page_count;
 
@@ -362,6 +362,34 @@ void Mmu::condenseFrees(Mmu::Process* proc)
                 proc->variables.erase(proc->variables.begin()+i+1);
                 break;
             }
+        }
+    }
+}
+
+void Mmu::freeEmpties(Mmu::Process* proc,int page_size,PageTable* pagetable)
+{
+    bool* used = new bool[proc->page_count];
+
+    for(int i = 0;i < proc->page_count;i++)
+        used[i] = false;
+
+    for(auto it = proc->variables.begin();it != proc->variables.end();it++)
+    {
+        if((*it)->type != "free")
+        {
+            for(int i = 0;i < ((*it)->size);i++)
+            {
+                int byte = (*it)->virtual_address + i;
+                used[byte / page_size] = true;
+            }
+        }
+    }
+
+    for(int i = 0;i < proc->page_count;i++)
+    {
+        if(used[i] == false)
+        {
+            pagetable->free(proc->pid,i);
         }
     }
 }

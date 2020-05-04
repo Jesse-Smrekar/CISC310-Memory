@@ -33,7 +33,7 @@ public:
     Mmu::Variable* getVariable(int PID, std::string var_name);
     Mmu::Process* getProcess(int pid);
     void terminate( int PID );
-    void free(int PID, std::string name);
+    void free(int PID, std::string NAME,PageTable* pagetable);
     //int getVarSize(std::string var_name);
     //int getVarStride(std::string var_name);
 
@@ -42,6 +42,7 @@ private:
     int _max_size;
     std::vector<Process*> _processes;
     void condenseFrees(Mmu::Process* proc);
+    void freeEmpties(Mmu::Process* proc,int page_size,PageTable* pagetable);
 };
 
 

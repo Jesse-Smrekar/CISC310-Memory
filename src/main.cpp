@@ -323,7 +323,6 @@ void set(std::vector<std::string> args,Hardware* hardware)
             }
 
             double buffer = std::stod(args[value+4]);
-            std::cout << "DEBUG " << buffer << std::endl;
 
             memcpy(&hardware->memory[addr], &buffer, sizeof(buffer));
             addr += 8;
@@ -364,7 +363,7 @@ void free(std::vector<std::string> args,Hardware* hardware)
 
     int pid = std::stoi(args[1]);
 
-    hardware->mmu->free(pid, args[2]);
+    hardware->mmu->free(pid, args[2],hardware->page_table);
 }
 
 void terminate(std::vector<std::string> args,Hardware* hardware)
